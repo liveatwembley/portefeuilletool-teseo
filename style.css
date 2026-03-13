@@ -1,0 +1,235 @@
+/* ═══════════════════════════════════════════════════════════════
+   Teseo Portefeuilletool — Morningstar-style Design System
+   ═══════════════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* ─── BASE LAYOUT ─────────────────────────────── */
+[data-testid="stSidebar"] { display: none; }
+.stApp {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: #ffffff;
+    color: #1a1a1a;
+}
+.block-container {
+    padding-top: 1rem !important;
+    max-width: 1400px;
+}
+
+/* ─── TESEO LOGO ──────────────────────────────── */
+.teseo-logo-corner {
+    position: fixed; top: 0.6rem; right: 1rem; z-index: 9999; opacity: 0.9;
+}
+.teseo-logo-corner img { height: 36px; width: auto; }
+
+/* ─── LOGIN ────────────────────────────────────── */
+.login-logo { display: block; margin: 0 auto 1.5rem auto; height: 80px; }
+.login-title {
+    font-size: 0.85rem; font-weight: 500; color: #1B3A5C;
+    text-align: center; margin-bottom: 1.5rem;
+    letter-spacing: 0.12em; text-transform: uppercase;
+}
+
+/* ─── TYPOGRAPHY ───────────────────────────────── */
+h1, h2, h3 {
+    font-weight: 600 !important; letter-spacing: -0.01em;
+    color: #1a1a1a !important;
+}
+.main-header {
+    font-size: 1.5rem; font-weight: 700; color: #1a1a1a;
+    margin-bottom: 0.2rem; letter-spacing: -0.02em;
+}
+.main-subheader {
+    font-size: 0.75rem; color: #6b7280; font-weight: 400;
+    letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 0.5rem;
+}
+
+/* ─── SECTION TITLES (Morningstar dense caps) ── */
+.section-title {
+    font-size: 0.7rem; font-weight: 600; color: #6b7280;
+    text-transform: uppercase; letter-spacing: 0.1em;
+    margin: 1.5rem 0 0.8rem 0;
+    padding-bottom: 0.4rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+/* ─── KPI CARDS (flat, Morningstar style) ────── */
+.kpi-card {
+    background: transparent;
+    padding: 0.6rem 0;
+    border-bottom: 2px solid #e5e7eb;
+}
+.kpi-label {
+    font-size: 0.65rem; color: #6b7280;
+    text-transform: uppercase; letter-spacing: 0.08em;
+    font-weight: 500; margin-bottom: 0.15rem;
+}
+.kpi-value {
+    font-size: 1.3rem; font-weight: 600; color: #1a1a1a; line-height: 1.3;
+}
+.kpi-delta {
+    font-size: 0.8rem; font-weight: 500; margin-top: 0.1rem;
+}
+.kpi-positive { color: #15803d; }
+.kpi-negative { color: #dc2626; }
+
+/* ─── HERO KPI ────────────────────────────────── */
+.kpi-hero {
+    border-bottom-width: 3px !important;
+    border-color: #1B3A5C !important;
+}
+.kpi-sublabel {
+    font-size: 0.65rem; color: #9ca3af;
+    margin-top: 0.1rem;
+}
+
+/* ─── BUTTONS ──────────────────────────────────── */
+.stButton > button[kind="primary"], .stFormSubmitButton > button {
+    background-color: #1B3A5C !important; border-color: #1B3A5C !important;
+    color: #fff !important; border-radius: 4px !important;
+    font-weight: 500 !important; font-size: 0.8rem !important;
+}
+.stButton > button[kind="primary"]:hover, .stFormSubmitButton > button:hover {
+    background-color: #15304d !important; border-color: #15304d !important;
+}
+.stButton > button[kind="secondary"] {
+    border-color: #d1d5db !important; color: #1a1a1a !important;
+    border-radius: 4px !important; font-size: 0.8rem !important;
+}
+.stButton > button[kind="secondary"]:hover {
+    background-color: #f3f4f6 !important; border-color: #9ca3af !important;
+}
+
+/* ─── TABS (horizontal nav, Morningstar underline) ── */
+.stTabs [data-baseweb="tab-list"] {
+    gap: 0;
+    border-bottom: 1px solid #e5e7eb;
+}
+.stTabs [data-baseweb="tab-list"] button {
+    font-size: 0.8rem !important; font-weight: 500 !important;
+    color: #6b7280 !important; padding: 0.6rem 1.2rem !important;
+    border-bottom: 2px solid transparent !important;
+    letter-spacing: 0.02em;
+}
+.stTabs [data-baseweb="tab-list"] button[aria-selected="true"] {
+    color: #1B3A5C !important;
+    border-bottom-color: #1B3A5C !important;
+    font-weight: 600 !important;
+}
+.stTabs [data-baseweb="tab-list"] button:hover {
+    color: #1a1a1a !important;
+    border-bottom-color: #d1d5db !important;
+}
+
+/* ─── SELECTBOX ────────────────────────────────── */
+.stSelectbox [data-baseweb="select"] > div {
+    border-color: #d1d5db !important; border-radius: 4px !important;
+    font-size: 0.85rem !important;
+}
+
+/* ─── HORIZONTAL RULE ──────────────────────────── */
+hr { border-color: #e5e7eb !important; opacity: 0.6; }
+
+/* ─── DATAFRAMES (Morningstar dense table) ────── */
+[data-testid="stDataFrame"] th {
+    font-size: 0.7rem !important; text-transform: uppercase !important;
+    letter-spacing: 0.06em !important; color: #6b7280 !important;
+    font-weight: 600 !important;
+}
+[data-testid="stDataFrame"] td {
+    font-size: 0.82rem !important;
+}
+
+/* ─── METRICS ──────────────────────────────────── */
+[data-testid="stMetricValue"] {
+    color: #1a1a1a !important; font-weight: 600 !important;
+    font-size: 1.1rem !important;
+}
+[data-testid="stMetricLabel"] {
+    color: #6b7280 !important; font-size: 0.7rem !important;
+    text-transform: uppercase !important; letter-spacing: 0.06em !important;
+}
+
+/* ─── EXPANDERS ────────────────────────────────── */
+.streamlit-expanderHeader {
+    font-size: 0.8rem !important; font-weight: 500 !important;
+    color: #1a1a1a !important;
+}
+
+/* ─── ALERTS & INFO ────────────────────────────── */
+.stAlert { border-radius: 4px !important; font-size: 0.85rem !important; }
+
+/* ─── MORNINGSTAR DATA TABLE ─────────────────── */
+.ms-table {
+    width: 100%; border-collapse: collapse; font-size: 0.82rem;
+}
+.ms-table th {
+    text-align: left; font-size: 0.65rem; font-weight: 600;
+    color: #6b7280; text-transform: uppercase; letter-spacing: 0.08em;
+    padding: 0.5rem 0.6rem; border-bottom: 2px solid #e5e7eb;
+}
+.ms-table td {
+    padding: 0.45rem 0.6rem; border-bottom: 1px solid #f3f4f6;
+    color: #1a1a1a; vertical-align: middle;
+}
+.ms-table tr:hover td { background-color: #f9fafb; }
+.ms-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+.ms-table .pos { color: #15803d; }
+.ms-table .neg { color: #dc2626; }
+.ms-table .muted { color: #6b7280; font-size: 0.75rem; }
+
+/* ─── 52-WEEK RANGE BAR ────────────────────────── */
+.range-bar {
+    display: inline-block; width: 80px; height: 6px;
+    background: #e5e7eb; border-radius: 3px; position: relative;
+    vertical-align: middle;
+}
+.range-dot {
+    position: absolute; top: -2px; width: 10px; height: 10px;
+    background: #1B3A5C; border-radius: 50%;
+}
+
+/* ─── STYLE BOX (3x3 Morningstar grid) ─────────── */
+.style-box {
+    display: inline-grid; grid-template-columns: repeat(3, 14px);
+    grid-template-rows: repeat(3, 14px); gap: 1px;
+    border: 1px solid #d1d5db;
+}
+.style-box .cell {
+    background: #f3f4f6; width: 14px; height: 14px;
+}
+.style-box .cell.active { background: #1B3A5C; }
+
+/* ─── CONCENTRATION BAR ────────────────────────── */
+.h-bar-container {
+    width: 100%; height: 20px; background: #f3f4f6;
+    border-radius: 2px; overflow: hidden; display: flex;
+}
+.h-bar-segment {
+    height: 100%; display: inline-block;
+    transition: width 0.3s ease;
+}
+
+/* ─── INSIGHT PILLS ──────────────────────────── */
+.insight-pill {
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    padding: 0.45rem 0.7rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+}
+.insight-label {
+    font-size: 0.6rem;
+    font-weight: 600;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+.insight-val {
+    font-weight: 500;
+    color: #4b5563;
+    font-variant-numeric: tabular-nums;
+}
