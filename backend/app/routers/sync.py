@@ -1,8 +1,12 @@
-from fastapi import APIRouter, Depends
+import logging
+
+from fastapi import APIRouter, Depends, HTTPException
 
 from app.auth import get_current_user
 from app.dependencies import get_db
 from core.database import get_all_snapshots
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -16,7 +20,11 @@ def live_refresh(db=Depends(get_db), user=Depends(get_current_user)):
 @router.get('/sheets/list')
 def list_sheets(user=Depends(get_current_user)):
     from core.import_sheets import list_spreadsheets
-    return list_spreadsheets()
+    try:
+        return list_spreadsheets()
+    except Exception as e:
+        logger.error("Fout bij laden spreadsheets: %s", e)
+        raise HTTPException(status_code=500, detail=f"Kan spreadsheets niet laden: {str(e)}")
 
 
 @router.get('/sheets/{sheet_id}/tabs')

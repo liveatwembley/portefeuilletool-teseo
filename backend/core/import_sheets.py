@@ -103,7 +103,7 @@ def list_spreadsheets():
         # Gebruik Drive API rechtstreeks.
         try:
             from googleapiclient.discovery import build
-            creds = gc.http_client.auth
+            creds = gc.auth  # gspread v6+
             drive = build('drive', 'v3', credentials=creds, cache_discovery=False)
             query = (
                 f"'{SHEETS_FOLDER_ID}' in parents"
