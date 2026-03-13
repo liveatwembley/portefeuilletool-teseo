@@ -9,19 +9,30 @@ from database import get_supabase_client
 
 def _verify_credentials(username, password):
     """
-    Verifieer login credentials tegen gehashte env vars.
+    Verifieer login credentials tegen gehashte env vars (multi-user).
 
-    Vereist APP_USERNAME_HASH en APP_PASSWORD_HASH in .env (SHA-256 hex).
-    Genereer met: python3 -c "import hashlib; print(hashlib.sha256(b'<waarde>').hexdigest())"
+    Ondersteunt meerdere gebruikers via APP_USERS (comma-separated username:password hashes).
+    Fallback naar APP_USERNAME_HASH + APP_PASSWORD_HASH voor single-user.
+    Alle waarden zijn SHA-256 hex.
     """
+    pwd_hash = hashlib.sha256(password.encode()).hexdigest()
+    user_hash = hashlib.sha256(username.encode()).hexdigest()
+
+    # Multi-user: APP_USERS="user1hash:passhash,user2hash:passhash"
+    app_users = os.environ.get('APP_USERS', '')
+    if app_users:
+        for entry in app_users.split(','):
+            parts = entry.strip().split(':')
+            if len(parts) == 2 and parts[0] == user_hash and parts[1] == pwd_hash:
+                return True
+        return False
+
+    # Fallback: single-user
     expected_user = os.environ.get('APP_USERNAME_HASH', '')
     expected_pass = os.environ.get('APP_PASSWORD_HASH', '')
     if not expected_user or not expected_pass:
         return False
-    return (
-        hashlib.sha256(username.encode()).hexdigest() == expected_user
-        and hashlib.sha256(password.encode()).hexdigest() == expected_pass
-    )
+    return user_hash == expected_user and pwd_hash == expected_pass
 
 st.set_page_config(
     page_title="Teseo Portefeuilletool",
