@@ -14,6 +14,7 @@ import {
   pnlBgColor,
 } from '@/lib/formatters'
 import { ADVICE_COLORS, COLOR_BRAND } from '@/lib/colors'
+import { useIsDark } from '@/hooks/useIsDark'
 import type { EnrichedHolding, FundamentalData, Transaction } from '@/lib/types'
 import {
   AreaChart,
@@ -62,17 +63,17 @@ function PositionListItem({
   return (
     <button
       onClick={onClick}
-      className={`w-full text-left px-4 py-3 border-b border-slate-100 last:border-b-0 transition-colors ${
-        active ? 'bg-slate-50 border-l-2 border-l-[#1B3A5C]' : 'hover:bg-slate-50/60'
+      className={`w-full text-left px-4 py-3 border-b border-slate-100 dark:border-slate-700/30 last:border-b-0 transition-colors ${
+        active ? 'bg-slate-50 dark:bg-slate-700/50 border-l-2 border-l-[#1B3A5C]' : 'hover:bg-slate-50/60 dark:hover:bg-slate-700/30'
       }`}
     >
       <div className="flex items-center justify-between">
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium text-slate-900 truncate">{holding.name}</p>
-          <p className="text-xs text-slate-400">{holding.ticker}</p>
+          <p className="text-sm font-medium text-slate-900 dark:text-slate-100 truncate">{holding.name}</p>
+          <p className="text-xs text-slate-400 dark:text-slate-500">{holding.ticker}</p>
         </div>
         <div className="text-right ml-3 flex-shrink-0">
-          <p className="text-sm font-medium text-slate-700">
+          <p className="text-sm font-medium text-slate-700 dark:text-slate-300">
             {formatLocalPrice(holding.price_local, holding.currency)}
           </p>
           <p className={`text-xs font-medium ${pnlColor(holding.day_change_pct)}`}>
@@ -104,7 +105,7 @@ function StyleBox({ row, col }: { row: number | null; col: number | null }) {
           <tr>
             <th className="w-6" />
             {STYLE_LABELS_COL.map((label) => (
-              <th key={label} className="text-[10px] text-slate-400 font-normal px-1 pb-1 text-center">
+              <th key={label} className="text-[10px] text-slate-400 dark:text-slate-500 font-normal px-1 pb-1 text-center">
                 {label}
               </th>
             ))}
@@ -113,7 +114,7 @@ function StyleBox({ row, col }: { row: number | null; col: number | null }) {
         <tbody>
           {STYLE_LABELS_ROW.map((rowLabel, ri) => (
             <tr key={rowLabel}>
-              <td className="text-[10px] text-slate-400 pr-1 text-right">{rowLabel}</td>
+              <td className="text-[10px] text-slate-400 dark:text-slate-500 pr-1 text-right">{rowLabel}</td>
               {STYLE_LABELS_COL.map((_, ci) => {
                 const isActive = row === ri + 1 && col === ci + 1
                 return (
@@ -122,7 +123,7 @@ function StyleBox({ row, col }: { row: number | null; col: number | null }) {
                       className={`w-7 h-7 rounded border ${
                         isActive
                           ? 'bg-[#1B3A5C] border-[#1B3A5C]'
-                          : 'bg-slate-50 border-slate-200'
+                          : 'bg-slate-50 dark:bg-slate-700 border-slate-200 dark:border-slate-600'
                       }`}
                     />
                   </td>
@@ -146,7 +147,7 @@ function FundamentalsGrid({
   currency: string
 }) {
   if (!fundamentals) {
-    return <p className="text-sm text-slate-400">Geen fundamentele data beschikbaar.</p>
+    return <p className="text-sm text-slate-400 dark:text-slate-500">Geen fundamentele data beschikbaar.</p>
   }
 
   const items = [
@@ -163,9 +164,9 @@ function FundamentalsGrid({
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
       {items.map((item) => (
-        <div key={item.label} className="rounded-xl bg-slate-50 px-3 py-2.5">
-          <p className="text-[11px] text-slate-400 mb-0.5">{item.label}</p>
-          <p className="text-sm font-semibold text-slate-800">{item.value ?? '—'}</p>
+        <div key={item.label} className="rounded-xl bg-slate-50 dark:bg-slate-700/50 px-3 py-2.5">
+          <p className="text-[11px] text-slate-400 dark:text-slate-500 mb-0.5">{item.label}</p>
+          <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">{item.value ?? '—'}</p>
         </div>
       ))}
     </div>
@@ -176,39 +177,39 @@ function FundamentalsGrid({
 
 function TransactionTable({ transactions }: { transactions: Transaction[] }) {
   if (transactions.length === 0) {
-    return <p className="text-sm text-slate-400">Geen transacties gevonden.</p>
+    return <p className="text-sm text-slate-400 dark:text-slate-500">Geen transacties gevonden.</p>
   }
 
   return (
     <div className="overflow-x-auto">
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b border-slate-200">
-            <th className="text-left py-2 pr-3 text-xs font-medium text-slate-400">Datum</th>
-            <th className="text-left py-2 pr-3 text-xs font-medium text-slate-400">Type</th>
-            <th className="text-right py-2 pr-3 text-xs font-medium text-slate-400">Stuks</th>
-            <th className="text-right py-2 pr-3 text-xs font-medium text-slate-400">Prijs</th>
-            <th className="text-right py-2 text-xs font-medium text-slate-400">Kosten</th>
+          <tr className="border-b border-slate-200 dark:border-slate-700">
+            <th className="text-left py-2 pr-3 text-xs font-medium text-slate-400 dark:text-slate-500">Datum</th>
+            <th className="text-left py-2 pr-3 text-xs font-medium text-slate-400 dark:text-slate-500">Type</th>
+            <th className="text-right py-2 pr-3 text-xs font-medium text-slate-400 dark:text-slate-500">Stuks</th>
+            <th className="text-right py-2 pr-3 text-xs font-medium text-slate-400 dark:text-slate-500">Prijs</th>
+            <th className="text-right py-2 text-xs font-medium text-slate-400 dark:text-slate-500">Kosten</th>
           </tr>
         </thead>
         <tbody>
           {transactions.map((tx) => (
-            <tr key={tx.id} className="border-b border-slate-100 last:border-b-0">
-              <td className="py-2 pr-3 text-slate-700">{tx.transaction_date}</td>
+            <tr key={tx.id} className="border-b border-slate-100 dark:border-slate-700/30 last:border-b-0">
+              <td className="py-2 pr-3 text-slate-700 dark:text-slate-300">{tx.transaction_date}</td>
               <td className="py-2 pr-3">
                 <span
                   className={`inline-flex px-2 py-0.5 rounded text-xs font-medium ${
                     tx.type === 'BUY'
-                      ? 'bg-green-50 text-green-700'
-                      : 'bg-red-50 text-red-700'
+                      ? 'bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-400'
+                      : 'bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400'
                   }`}
                 >
                   {tx.type === 'BUY' ? 'Koop' : 'Verkoop'}
                 </span>
               </td>
-              <td className="py-2 pr-3 text-right text-slate-700">{formatNumber(tx.shares)}</td>
-              <td className="py-2 pr-3 text-right text-slate-700">{formatEuro(tx.price_eur)}</td>
-              <td className="py-2 text-right text-slate-400">{formatEuro(tx.fees)}</td>
+              <td className="py-2 pr-3 text-right text-slate-700 dark:text-slate-300">{formatNumber(tx.shares)}</td>
+              <td className="py-2 pr-3 text-right text-slate-700 dark:text-slate-300">{formatEuro(tx.price_eur)}</td>
+              <td className="py-2 text-right text-slate-400 dark:text-slate-500">{formatEuro(tx.fees)}</td>
             </tr>
           ))}
         </tbody>
@@ -258,11 +259,11 @@ function AdviceSection({
     return (
       <div className="space-y-3">
         <div>
-          <label className="block text-xs font-medium text-slate-500 mb-1">Advies</label>
+          <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Advies</label>
           <select
             value={editAdvice}
             onChange={(e) => setEditAdvice(e.target.value)}
-            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B3A5C]/20 focus:border-[#1B3A5C]"
+            className="w-full rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#1B3A5C]/20 dark:focus:ring-[#1B3A5C]/40 focus:border-[#1B3A5C]"
           >
             <option value="">— Selecteer —</option>
             <option value="Kopen">Kopen</option>
@@ -272,12 +273,12 @@ function AdviceSection({
           </select>
         </div>
         <div>
-          <label className="block text-xs font-medium text-slate-500 mb-1">Motivatie</label>
+          <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1">Motivatie</label>
           <textarea
             value={editMotivation}
             onChange={(e) => setEditMotivation(e.target.value)}
             rows={3}
-            className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B3A5C]/20 focus:border-[#1B3A5C] resize-none"
+            className="w-full rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#1B3A5C]/20 dark:focus:ring-[#1B3A5C]/40 focus:border-[#1B3A5C] resize-none"
           />
         </div>
         <div className="flex gap-2">
@@ -290,7 +291,7 @@ function AdviceSection({
           </button>
           <button
             onClick={() => setEditing(false)}
-            className="px-4 py-2 rounded-lg border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors"
+            className="px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-600 text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
           >
             Annuleren
           </button>
@@ -310,10 +311,10 @@ function AdviceSection({
             {advice}
           </span>
         ) : (
-          <span className="text-sm text-slate-400">Geen advies</span>
+          <span className="text-sm text-slate-400 dark:text-slate-500">Geen advies</span>
         )}
         {motivation && (
-          <p className="text-sm text-slate-600 mt-2">{motivation}</p>
+          <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">{motivation}</p>
         )}
       </div>
       <button
@@ -322,7 +323,7 @@ function AdviceSection({
           setEditMotivation(motivation || '')
           setEditing(true)
         }}
-        className="flex-shrink-0 text-xs text-[#1B3A5C] font-medium hover:underline"
+        className="flex-shrink-0 text-xs text-[#1B3A5C] dark:text-[#E8B34A] font-medium hover:underline"
       >
         Bewerken
       </button>
@@ -336,6 +337,7 @@ function PriceChart({ ticker }: { ticker: string }) {
   const [period, setPeriod] = useState<Period>('1Y')
   const [allData, setAllData] = useState<PricePoint[]>([])
   const [loading, setLoading] = useState(true)
+  const isDark = useIsDark()
 
   useEffect(() => {
     let cancelled = false
@@ -368,7 +370,7 @@ function PriceChart({ ticker }: { ticker: string }) {
   }
 
   if (filteredData.length === 0) {
-    return <p className="text-sm text-slate-400 py-6 text-center">Geen koersdata beschikbaar.</p>
+    return <p className="text-sm text-slate-400 dark:text-slate-500 py-6 text-center">Geen koersdata beschikbaar.</p>
   }
 
   const prices = filteredData.map((p) => p.close)
@@ -376,6 +378,7 @@ function PriceChart({ ticker }: { ticker: string }) {
   const maxPrice = Math.max(...prices)
   const isPositive = filteredData[filteredData.length - 1].close >= filteredData[0].close
   const chartColor = isPositive ? '#15803d' : '#dc2626'
+  const tickColor = isDark ? '#64748b' : '#94a3b8'
 
   return (
     <div>
@@ -387,7 +390,7 @@ function PriceChart({ ticker }: { ticker: string }) {
             className={`px-3 py-1 rounded-lg text-xs font-medium transition-colors ${
               period === p
                 ? 'bg-[#1B3A5C] text-white'
-                : 'bg-slate-100 text-slate-500 hover:bg-slate-200'
+                : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600'
             }`}
           >
             {p}
@@ -404,7 +407,7 @@ function PriceChart({ ticker }: { ticker: string }) {
           </defs>
           <XAxis
             dataKey="date"
-            tick={{ fontSize: 10, fill: '#94a3b8' }}
+            tick={{ fontSize: 10, fill: tickColor }}
             tickLine={false}
             axisLine={false}
             tickFormatter={(d: string) => {
@@ -415,7 +418,7 @@ function PriceChart({ ticker }: { ticker: string }) {
           />
           <YAxis
             domain={[minPrice * 0.98, maxPrice * 1.02]}
-            tick={{ fontSize: 10, fill: '#94a3b8' }}
+            tick={{ fontSize: 10, fill: tickColor }}
             tickLine={false}
             axisLine={false}
             width={50}
@@ -424,9 +427,11 @@ function PriceChart({ ticker }: { ticker: string }) {
           <Tooltip
             contentStyle={{
               borderRadius: '8px',
-              border: '1px solid #e2e8f0',
+              border: isDark ? '1px solid #334155' : '1px solid #e2e8f0',
               fontSize: '12px',
               boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.05)',
+              backgroundColor: isDark ? '#1e293b' : '#ffffff',
+              color: isDark ? '#e2e8f0' : '#1e293b',
             }}
             formatter={(value) => [Number(value).toFixed(2), 'Koers']}
             labelFormatter={(label) => {
@@ -497,10 +502,10 @@ function DetailPanel({
   if (error) {
     return (
       <div className="text-center py-12">
-        <p className="text-sm text-slate-500 mb-3">{error}</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400 mb-3">{error}</p>
         <button
           onClick={fetchDetail}
-          className="text-sm text-[#1B3A5C] font-medium hover:underline"
+          className="text-sm text-[#1B3A5C] dark:text-[#E8B34A] font-medium hover:underline"
         >
           Opnieuw proberen
         </button>
@@ -517,10 +522,10 @@ function DetailPanel({
     <div className="space-y-6">
       {/* --- HEADER --- */}
       <div>
-        <h2 className="text-lg font-semibold text-slate-900">{holding.name}</h2>
-        <p className="text-sm text-slate-400">{holding.ticker} &middot; {holding.sector} &middot; {holding.geo}</p>
+        <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{holding.name}</h2>
+        <p className="text-sm text-slate-400 dark:text-slate-500">{holding.ticker} &middot; {holding.sector} &middot; {holding.geo}</p>
         <div className="flex items-baseline gap-3 mt-2">
-          <span className="text-2xl font-bold text-slate-900">
+          <span className="text-2xl font-bold text-slate-900 dark:text-slate-100">
             {formatLocalPrice(holding.price_local, holding.currency)}
           </span>
           <span className={`text-sm font-semibold ${pnlColor(holding.day_change_pct)}`}>
@@ -528,26 +533,26 @@ function DetailPanel({
           </span>
         </div>
         {isNonEur && (
-          <p className="text-xs text-slate-400 mt-0.5">{formatEuro(holding.price_eur)}</p>
+          <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">{formatEuro(holding.price_eur)}</p>
         )}
       </div>
 
       {/* --- POSITIE SAMENVATTING --- */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="rounded-xl bg-slate-50 px-3 py-2.5">
-          <p className="text-[11px] text-slate-400 mb-0.5">Stuks</p>
-          <p className="text-sm font-semibold text-slate-800">{formatNumber(holding.shares)}</p>
+        <div className="rounded-xl bg-slate-50 dark:bg-slate-700/50 px-3 py-2.5">
+          <p className="text-[11px] text-slate-400 dark:text-slate-500 mb-0.5">Stuks</p>
+          <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">{formatNumber(holding.shares)}</p>
         </div>
-        <div className="rounded-xl bg-slate-50 px-3 py-2.5">
-          <p className="text-[11px] text-slate-400 mb-0.5">Waarde</p>
-          <p className="text-sm font-semibold text-slate-800">{formatEuro(holding.value)}</p>
+        <div className="rounded-xl bg-slate-50 dark:bg-slate-700/50 px-3 py-2.5">
+          <p className="text-[11px] text-slate-400 dark:text-slate-500 mb-0.5">Waarde</p>
+          <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">{formatEuro(holding.value)}</p>
         </div>
-        <div className="rounded-xl bg-slate-50 px-3 py-2.5">
-          <p className="text-[11px] text-slate-400 mb-0.5">Gem. Kostprijs</p>
-          <p className="text-sm font-semibold text-slate-800">{formatEuro(holding.avg_cost_eur)}</p>
+        <div className="rounded-xl bg-slate-50 dark:bg-slate-700/50 px-3 py-2.5">
+          <p className="text-[11px] text-slate-400 dark:text-slate-500 mb-0.5">Gem. Kostprijs</p>
+          <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">{formatEuro(holding.avg_cost_eur)}</p>
         </div>
         <div className={`rounded-xl px-3 py-2.5 ${pnlBgColor(holding.pnl_nominal)}`}>
-          <p className="text-[11px] text-slate-400 mb-0.5">P&L</p>
+          <p className="text-[11px] text-slate-400 dark:text-slate-500 mb-0.5">P&L</p>
           <p className={`text-sm font-semibold ${pnlColor(holding.pnl_nominal)}`}>
             {formatEuro(holding.pnl_nominal)} ({formatPct(holding.pnl_pct)})
           </p>
@@ -555,29 +560,29 @@ function DetailPanel({
       </div>
 
       {/* --- KOERSGRAFIEK --- */}
-      <div className="bg-white rounded-2xl border border-slate-200/60 p-5">
-        <h3 className="text-sm font-semibold text-slate-900 mb-3">Koersverloop</h3>
+      <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 p-5">
+        <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-3">Koersverloop</h3>
         <PriceChart ticker={ticker} />
       </div>
 
       {/* --- FUNDAMENTALS --- */}
-      <div className="bg-white rounded-2xl border border-slate-200/60 p-5">
-        <h3 className="text-sm font-semibold text-slate-900 mb-3">Fundamentele Data</h3>
+      <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 p-5">
+        <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-3">Fundamentele Data</h3>
         <FundamentalsGrid fundamentals={fundamentals} currency={holding.currency} />
       </div>
 
       {/* --- STYLE BOX + ADVIES --- */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        <div className="bg-white rounded-2xl border border-slate-200/60 p-5">
-          <h3 className="text-sm font-semibold text-slate-900 mb-3">Morningstar Style Box</h3>
+        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 p-5">
+          <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-3">Morningstar Style Box</h3>
           {style.row != null && style.col != null ? (
             <StyleBox row={style.row} col={style.col} />
           ) : (
-            <p className="text-sm text-slate-400">Geen stijlclassificatie beschikbaar.</p>
+            <p className="text-sm text-slate-400 dark:text-slate-500">Geen stijlclassificatie beschikbaar.</p>
           )}
         </div>
-        <div className="bg-white rounded-2xl border border-slate-200/60 p-5">
-          <h3 className="text-sm font-semibold text-slate-900 mb-3">Advies</h3>
+        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 p-5">
+          <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-3">Advies</h3>
           <AdviceSection
             ticker={ticker}
             advice={holding.advice}
@@ -591,8 +596,8 @@ function DetailPanel({
       </div>
 
       {/* --- TRANSACTIES --- */}
-      <div className="bg-white rounded-2xl border border-slate-200/60 p-5">
-        <h3 className="text-sm font-semibold text-slate-900 mb-3">Transactiehistorie</h3>
+      <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 p-5">
+        <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-3">Transactiehistorie</h3>
         <TransactionTable transactions={transactions} />
       </div>
     </div>
@@ -650,13 +655,13 @@ export default function PositiesPage() {
   if (error) {
     return (
       <div className="text-center py-20">
-        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-50 mb-4">
-          <svg className="w-8 h-8 text-red-500" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-50 dark:bg-red-900/30 mb-4">
+          <svg className="w-8 h-8 text-red-500 dark:text-red-400" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
           </svg>
         </div>
-        <p className="text-lg font-medium text-slate-700 mb-1">Fout bij laden</p>
-        <p className="text-sm text-slate-400 mb-6">{error}</p>
+        <p className="text-lg font-medium text-slate-700 dark:text-slate-300 mb-1">Fout bij laden</p>
+        <p className="text-sm text-slate-400 dark:text-slate-500 mb-6">{error}</p>
         <button
           onClick={refresh}
           className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#1B3A5C] text-white text-sm font-medium hover:bg-[#162f4a] transition-colors"
@@ -673,7 +678,7 @@ export default function PositiesPage() {
   // --- EMPTY ---
   if (!data?.holdings || data.holdings.length === 0) {
     return (
-      <div className="text-center py-20 text-slate-400">
+      <div className="text-center py-20 text-slate-400 dark:text-slate-500">
         <p className="text-lg">Geen posities gevonden.</p>
         <p className="text-sm mt-2">Ga naar Data Sync om data te importeren.</p>
       </div>
@@ -682,17 +687,17 @@ export default function PositiesPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-semibold text-slate-900 tracking-tight">Posities</h1>
+      <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100 tracking-tight">Posities</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* --- POSITIELIJST --- */}
         <div className="md:col-span-1">
-          <div className="bg-white rounded-2xl border border-slate-200/60 overflow-hidden">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 overflow-hidden">
             {/* Search */}
-            <div className="p-3 border-b border-slate-100">
+            <div className="p-3 border-b border-slate-100 dark:border-slate-700/30">
               <div className="relative">
                 <svg
-                  className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-300 dark:text-slate-600"
                   fill="none"
                   viewBox="0 0 24 24"
                   strokeWidth="2"
@@ -705,7 +710,7 @@ export default function PositiesPage() {
                   placeholder="Zoek positie..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-[#1B3A5C]/20 focus:border-[#1B3A5C] placeholder:text-slate-300"
+                  className="w-full pl-9 pr-3 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#1B3A5C]/20 dark:focus:ring-[#1B3A5C]/40 focus:border-[#1B3A5C] placeholder:text-slate-300 dark:placeholder:text-slate-500"
                 />
               </div>
             </div>
@@ -713,7 +718,7 @@ export default function PositiesPage() {
             {/* List */}
             <div className="max-h-[calc(100vh-260px)] overflow-y-auto">
               {filteredHoldings.length === 0 ? (
-                <p className="text-sm text-slate-400 text-center py-8">Geen resultaten</p>
+                <p className="text-sm text-slate-400 dark:text-slate-500 text-center py-8">Geen resultaten</p>
               ) : (
                 filteredHoldings.map((h) => (
                   <PositionListItem
@@ -727,8 +732,8 @@ export default function PositiesPage() {
             </div>
 
             {/* Count */}
-            <div className="px-4 py-2 border-t border-slate-100 bg-slate-50/50">
-              <p className="text-xs text-slate-400">
+            <div className="px-4 py-2 border-t border-slate-100 dark:border-slate-700/30 bg-slate-50/50 dark:bg-slate-700/20">
+              <p className="text-xs text-slate-400 dark:text-slate-500">
                 {filteredHoldings.length} van {sortedHoldings.length} posities
               </p>
             </div>
@@ -745,10 +750,10 @@ export default function PositiesPage() {
               onAdviceUpdated={refresh}
             />
           ) : (
-            <div className="bg-white rounded-2xl border border-slate-200/60 p-5 flex items-center justify-center min-h-[400px]">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 p-5 flex items-center justify-center min-h-[400px]">
               <div className="text-center">
                 <svg
-                  className="w-12 h-12 text-slate-200 mx-auto mb-3"
+                  className="w-12 h-12 text-slate-200 dark:text-slate-600 mx-auto mb-3"
                   fill="none"
                   viewBox="0 0 24 24"
                   strokeWidth="1"
@@ -756,7 +761,7 @@ export default function PositiesPage() {
                 >
                   <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5M9 11.25v1.5M12 9v3.75m3-6v6" />
                 </svg>
-                <p className="text-sm text-slate-400">Selecteer een positie om details te bekijken</p>
+                <p className="text-sm text-slate-400 dark:text-slate-500">Selecteer een positie om details te bekijken</p>
               </div>
             </div>
           )}

@@ -14,18 +14,18 @@ interface HoldingsResponse {
 
 // --- 52W RANGE BAR ---
 function FiftyTwoWeekBar({ low, high, current }: { low: number; high: number; current: number }) {
-  if (low >= high) return <span className="text-slate-400">—</span>
+  if (low >= high) return <span className="text-slate-400 dark:text-slate-500">—</span>
   const pct = Math.max(0, Math.min(100, ((current - low) / (high - low)) * 100))
   return (
     <div className="flex items-center gap-2 min-w-[120px]">
-      <span className="text-[11px] text-slate-400 w-10 text-right">{formatNumber(low, 0)}</span>
-      <div className="relative flex-1 h-2 bg-slate-200 rounded-full">
+      <span className="text-[11px] text-slate-400 dark:text-slate-500 w-10 text-right">{formatNumber(low, 0)}</span>
+      <div className="relative flex-1 h-2 bg-slate-200 dark:bg-slate-600 rounded-full">
         <div
-          className="absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-[#1B3A5C] border-2 border-white shadow-sm"
+          className="absolute top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full bg-[#1B3A5C] border-2 border-white dark:border-slate-800 shadow-sm"
           style={{ left: `calc(${pct}% - 5px)` }}
         />
       </div>
-      <span className="text-[11px] text-slate-400 w-10">{formatNumber(high, 0)}</span>
+      <span className="text-[11px] text-slate-400 dark:text-slate-500 w-10">{formatNumber(high, 0)}</span>
     </div>
   )
 }
@@ -87,7 +87,7 @@ export default function HoldingsPage() {
     return (
       <div className="space-y-6">
         <Skeleton className="h-7 w-40 rounded-lg" />
-        <div className="bg-white rounded-2xl border border-slate-200/60 p-5">
+        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 p-5">
           {Array.from({ length: 8 }).map((_, i) => (
             <Skeleton key={i} className="h-10 mb-2 rounded-lg" />
           ))}
@@ -99,9 +99,9 @@ export default function HoldingsPage() {
   if (error || !data?.holdings?.length) {
     return (
       <div className="text-center py-20">
-        <p className="text-slate-400 mb-4">Kan data niet laden.</p>
-        {error && <p className="text-sm text-slate-400 mb-4">{error}</p>}
-        <button onClick={fetchData} className="text-sm text-[#1B3A5C] hover:underline">Opnieuw proberen</button>
+        <p className="text-slate-400 dark:text-slate-500 mb-4">Kan data niet laden.</p>
+        {error && <p className="text-sm text-slate-400 dark:text-slate-500 mb-4">{error}</p>}
+        <button onClick={fetchData} className="text-sm text-[#1B3A5C] dark:text-[#E8B34A] hover:underline">Opnieuw proberen</button>
       </div>
     )
   }
@@ -118,7 +118,6 @@ export default function HoldingsPage() {
     }
     const na = va as number
     const nb = vb as number
-    // Push -Infinity to the bottom regardless of sort direction
     if (na === -Infinity && nb === -Infinity) return 0
     if (na === -Infinity) return 1
     if (nb === -Infinity) return -1
@@ -139,22 +138,22 @@ export default function HoldingsPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-semibold text-slate-900 mb-6">Holdings</h1>
+      <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-6">Holdings</h1>
 
-      <h2 className="text-sm font-semibold text-slate-900 mb-3">Fundamentele data per positie</h2>
-      <div className="bg-white rounded-2xl border border-slate-200/60 overflow-hidden hover:shadow-sm transition-shadow">
+      <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-3">Fundamentele data per positie</h2>
+      <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 overflow-hidden hover:shadow-sm transition-shadow">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-slate-100">
+              <tr className="border-b border-slate-100 dark:border-slate-700">
                 {columns.map(col => (
                   <th
                     key={col.key}
                     onClick={() => col.key !== 'value' ? handleSort(col.key) : undefined}
-                    className={`px-4 py-3 font-medium text-slate-500 text-xs whitespace-nowrap ${
+                    className={`px-4 py-3 font-medium text-slate-500 dark:text-slate-400 text-xs whitespace-nowrap ${
                       col.align === 'right' ? 'text-right' : 'text-left'
-                    } ${col.key !== 'value' ? 'cursor-pointer hover:text-slate-700 select-none' : ''} ${
-                      col.key === 'name' ? 'sticky left-0 bg-white z-10' : ''
+                    } ${col.key !== 'value' ? 'cursor-pointer hover:text-slate-700 dark:hover:text-slate-300 select-none' : ''} ${
+                      col.key === 'name' ? 'sticky left-0 bg-white dark:bg-slate-800 z-10' : ''
                     }`}
                   >
                     {col.label}{col.key !== 'value' ? sortIndicator(col.key) : ''}
@@ -166,16 +165,16 @@ export default function HoldingsPage() {
               {sorted.map(h => {
                 const f = fundamentals[h.ticker]
                 return (
-                  <tr key={h.ticker} className="border-b border-slate-50 hover:bg-slate-50/50 transition-colors">
+                  <tr key={h.ticker} className="border-b border-slate-50 dark:border-slate-700/30 hover:bg-slate-50/50 dark:hover:bg-slate-700/30 transition-colors">
                     {/* Naam */}
-                    <td className="px-4 py-3 sticky left-0 bg-white z-10">
-                      <div className="font-medium text-slate-900">{h.name}</div>
-                      <div className="text-xs text-slate-400">{h.ticker}</div>
+                    <td className="px-4 py-3 sticky left-0 bg-white dark:bg-slate-800 z-10">
+                      <div className="font-medium text-slate-900 dark:text-slate-100">{h.name}</div>
+                      <div className="text-xs text-slate-400 dark:text-slate-500">{h.ticker}</div>
                     </td>
                     {/* Sector */}
-                    <td className="px-4 py-3 text-slate-600">{h.sector || '—'}</td>
+                    <td className="px-4 py-3 text-slate-600 dark:text-slate-400">{h.sector || '—'}</td>
                     {/* Koers */}
-                    <td className="px-4 py-3 text-right font-medium text-slate-900">
+                    <td className="px-4 py-3 text-right font-medium text-slate-900 dark:text-slate-100">
                       {formatEuro(h.price_eur)}
                     </td>
                     {/* 52W Range */}
@@ -187,27 +186,27 @@ export default function HoldingsPage() {
                           current={h.price_eur}
                         />
                       ) : (
-                        <span className="text-slate-400">—</span>
+                        <span className="text-slate-400 dark:text-slate-500">—</span>
                       )}
                     </td>
                     {/* P/E */}
-                    <td className="px-4 py-3 text-right text-slate-700">
+                    <td className="px-4 py-3 text-right text-slate-700 dark:text-slate-300">
                       {f?.pe_trailing != null ? formatNumber(f.pe_trailing, 1) : '—'}
                     </td>
                     {/* P/B */}
-                    <td className="px-4 py-3 text-right text-slate-700">
+                    <td className="px-4 py-3 text-right text-slate-700 dark:text-slate-300">
                       {f?.pb != null ? formatNumber(f.pb, 1) : '—'}
                     </td>
                     {/* Div. Yield */}
-                    <td className="px-4 py-3 text-right text-slate-700">
+                    <td className="px-4 py-3 text-right text-slate-700 dark:text-slate-300">
                       {f?.dividend_yield != null ? `${(f.dividend_yield * 100).toFixed(2)}%` : '—'}
                     </td>
                     {/* Market Cap */}
-                    <td className="px-4 py-3 text-right text-slate-700">
+                    <td className="px-4 py-3 text-right text-slate-700 dark:text-slate-300">
                       {formatMarketCap(f?.market_cap)}
                     </td>
                     {/* Beta */}
-                    <td className="px-4 py-3 text-right text-slate-700">
+                    <td className="px-4 py-3 text-right text-slate-700 dark:text-slate-300">
                       {f?.beta != null ? formatNumber(f.beta, 2) : '—'}
                     </td>
                   </tr>

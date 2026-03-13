@@ -2,6 +2,7 @@
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
 import { SECTOR_COLORS } from '@/lib/colors'
 import { formatEuroCompact } from '@/lib/formatters'
+import { useIsDark } from '@/hooks/useIsDark'
 
 interface DonutData {
   name: string
@@ -10,6 +11,7 @@ interface DonutData {
 
 export function SectorDonut({ data }: { data: DonutData[] }) {
   const total = data.reduce((s, d) => s + d.value, 0)
+  const isDark = useIsDark()
 
   return (
     <div className="flex items-center gap-6">
@@ -30,7 +32,13 @@ export function SectorDonut({ data }: { data: DonutData[] }) {
             </Pie>
             <Tooltip
               formatter={(value) => formatEuroCompact(Number(value))}
-              contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: '12px' }}
+              contentStyle={{
+                borderRadius: '12px',
+                border: isDark ? '1px solid #334155' : '1px solid #e2e8f0',
+                fontSize: '12px',
+                backgroundColor: isDark ? '#1e293b' : '#ffffff',
+                color: isDark ? '#e2e8f0' : '#1e293b',
+              }}
             />
           </PieChart>
         </ResponsiveContainer>
@@ -43,9 +51,9 @@ export function SectorDonut({ data }: { data: DonutData[] }) {
                 className="w-2.5 h-2.5 rounded-full"
                 style={{ backgroundColor: SECTOR_COLORS[i % SECTOR_COLORS.length] }}
               />
-              <span className="text-slate-600">{item.name}</span>
+              <span className="text-slate-600 dark:text-slate-400">{item.name}</span>
             </div>
-            <span className="text-slate-400 text-xs">
+            <span className="text-slate-400 dark:text-slate-500 text-xs">
               {total > 0 ? ((item.value / total) * 100).toFixed(1) : 0}%
             </span>
           </div>

@@ -10,6 +10,7 @@ import { KpiCard } from '@/components/dashboard/KpiCard'
 import { Skeleton } from '@/components/ui/skeleton'
 import { formatEuro, formatPct, formatNumber } from '@/lib/formatters'
 import { COLOR_BRAND, SECTOR_COLORS } from '@/lib/colors'
+import { useIsDark } from '@/hooks/useIsDark'
 
 interface SnapshotRow {
   id: number
@@ -56,6 +57,7 @@ export default function RendementPage() {
   const [data, setData] = useState<PerformanceData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const isDark = useIsDark()
 
   const fetchData = useCallback(() => {
     setLoading(true)
@@ -87,9 +89,9 @@ export default function RendementPage() {
   if (error || !data) {
     return (
       <div className="text-center py-20">
-        <p className="text-slate-400 mb-4">Kan data niet laden.</p>
-        {error && <p className="text-sm text-slate-400 mb-4">{error}</p>}
-        <button onClick={fetchData} className="text-sm text-[#1B3A5C] hover:underline">Opnieuw proberen</button>
+        <p className="text-slate-400 dark:text-slate-500 mb-4">Kan data niet laden.</p>
+        {error && <p className="text-sm text-slate-400 dark:text-slate-500 mb-4">{error}</p>}
+        <button onClick={fetchData} className="text-sm text-[#1B3A5C] dark:text-[#E8B34A] hover:underline">Opnieuw proberen</button>
       </div>
     )
   }
@@ -99,8 +101,8 @@ export default function RendementPage() {
   if (snapshots.length === 0) {
     return (
       <div className="text-center py-20">
-        <p className="text-slate-400 mb-4">Geen snapshots gevonden.</p>
-        <p className="text-sm text-slate-400">Importeer data om het rendement te bekijken.</p>
+        <p className="text-slate-400 dark:text-slate-500 mb-4">Geen snapshots gevonden.</p>
+        <p className="text-sm text-slate-400 dark:text-slate-500">Importeer data om het rendement te bekijken.</p>
       </div>
     )
   }
@@ -122,7 +124,6 @@ export default function RendementPage() {
   const benchmarkKeys = Object.keys(benchmarks || {})
   const portfolioBase = first.total_value_eur
 
-  // Build a date-indexed map for merging
   const dateMap: Record<string, Record<string, number>> = {}
 
   sorted.forEach(s => {
@@ -130,7 +131,6 @@ export default function RendementPage() {
     dateMap[s.snapshot_date]['portfolio'] = s.total_value_eur
   })
 
-  // Normalize benchmarks to portfolio starting value
   benchmarkKeys.forEach(key => {
     const points = benchmarks[key]
     if (!points || points.length === 0) return
@@ -154,12 +154,13 @@ export default function RendementPage() {
     }, {} as Record<string, number | null>),
   }))
 
-  // Benchmark colors
   const benchmarkColors = [SECTOR_COLORS[1], SECTOR_COLORS[2], SECTOR_COLORS[4]]
+  const gridColor = isDark ? '#334155' : '#e2e8f0'
+  const tickColor = isDark ? '#64748b' : '#94a3b8'
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-semibold text-slate-900 mb-6">Rendement</h1>
+      <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-6">Rendement</h1>
 
       {/* KPI Bar */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -184,12 +185,12 @@ export default function RendementPage() {
       </div>
 
       {/* Performance chart */}
-      <h2 className="text-sm font-semibold text-slate-900 mb-3">Waardeontwikkeling</h2>
-      <div className="bg-white rounded-2xl border border-slate-200/60 p-5 hover:shadow-sm transition-shadow">
-        <h3 className="text-sm font-semibold text-slate-900 mb-4">
+      <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-3">Waardeontwikkeling</h2>
+      <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 p-5 hover:shadow-sm transition-shadow">
+        <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-4">
           Portefeuillewaarde over tijd
           {benchmarkKeys.length > 0 && (
-            <span className="text-slate-400 font-normal ml-2">
+            <span className="text-slate-400 dark:text-slate-500 font-normal ml-2">
               (benchmarks genormaliseerd naar startwaarde)
             </span>
           )}
@@ -202,19 +203,19 @@ export default function RendementPage() {
                 <stop offset="95%" stopColor={COLOR_BRAND} stopOpacity={0} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" />
+            <CartesianGrid strokeDasharray="3 3" stroke={gridColor} />
             <XAxis
               dataKey="date"
               tickFormatter={formatDateShort}
-              tick={{ fontSize: 11, fill: '#94a3b8' }}
+              tick={{ fontSize: 11, fill: tickColor }}
               tickLine={false}
-              axisLine={{ stroke: '#e2e8f0' }}
+              axisLine={{ stroke: gridColor }}
               interval="preserveStartEnd"
               minTickGap={40}
             />
             <YAxis
               tickFormatter={(v: unknown) => `${(Number(v) / 1000).toFixed(0)}K`}
-              tick={{ fontSize: 11, fill: '#94a3b8' }}
+              tick={{ fontSize: 11, fill: tickColor }}
               tickLine={false}
               axisLine={false}
               width={50}
@@ -227,14 +228,16 @@ export default function RendementPage() {
               labelFormatter={(label: unknown) => formatDateNL(String(label))}
               contentStyle={{
                 borderRadius: '12px',
-                border: '1px solid #e2e8f0',
+                border: isDark ? '1px solid #334155' : '1px solid #e2e8f0',
                 fontSize: '13px',
                 boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.05)',
+                backgroundColor: isDark ? '#1e293b' : '#ffffff',
+                color: isDark ? '#e2e8f0' : '#1e293b',
               }}
             />
             <Legend
               formatter={(value: string) => value === 'portfolio' ? 'Portefeuille' : value}
-              wrapperStyle={{ fontSize: '12px', paddingTop: '8px' }}
+              wrapperStyle={{ fontSize: '12px', paddingTop: '8px', color: isDark ? '#94a3b8' : undefined }}
             />
             <Area
               type="monotone"

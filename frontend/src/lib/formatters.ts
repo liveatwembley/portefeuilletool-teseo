@@ -54,11 +54,11 @@ export function formatLocalPrice(price: number | null | undefined, currency: str
 }
 
 export function pnlColor(value: number | null | undefined): string {
-  if (value == null || value === 0) return 'text-slate-500'
-  return value > 0 ? 'text-green-700' : 'text-red-600'
+  if (value == null || value === 0) return 'text-slate-500 dark:text-slate-400'
+  return value > 0 ? 'text-green-700 dark:text-green-400' : 'text-red-600 dark:text-red-400'
 }
 
 export function pnlBgColor(value: number | null | undefined): string {
-  if (value == null || value === 0) return 'bg-slate-50'
-  return value > 0 ? 'bg-green-50' : 'bg-red-50'
+  if (value == null || value === 0) return 'bg-slate-50 dark:bg-slate-800'
+  return value > 0 ? 'bg-green-50 dark:bg-green-900/30' : 'bg-red-50 dark:bg-red-900/30'
 }

@@ -10,42 +10,42 @@ export function PositionsTable({ holdings }: { holdings: EnrichedHolding[] }) {
     <div className="relative overflow-x-auto rounded-lg">
       <table className="w-full text-sm">
         <thead>
-          <tr className="border-b border-slate-200">
-            <th className="text-left py-3 px-4 text-xs font-medium text-slate-400 uppercase tracking-wider sticky left-0 bg-white z-10">Aandeel</th>
-            <th className="text-left py-3 px-4 text-xs font-medium text-slate-400 uppercase tracking-wider">Sector</th>
-            <th className="text-right py-3 px-4 text-xs font-medium text-slate-400 uppercase tracking-wider">Aantal</th>
-            <th className="text-right py-3 px-4 text-xs font-medium text-slate-400 uppercase tracking-wider">Koers</th>
-            <th className="text-right py-3 px-4 text-xs font-medium text-slate-400 uppercase tracking-wider">Waarde</th>
-            <th className="text-right py-3 px-4 text-xs font-medium text-slate-400 uppercase tracking-wider">P&L</th>
-            <th className="text-right py-3 px-4 text-xs font-medium text-slate-400 uppercase tracking-wider">P&L %</th>
-            <th className="text-right py-3 px-4 text-xs font-medium text-slate-400 uppercase tracking-wider">Dag %</th>
-            <th className="text-right py-3 px-4 text-xs font-medium text-slate-400 uppercase tracking-wider">Gewicht</th>
-            <th className="text-center py-3 px-4 text-xs font-medium text-slate-400 uppercase tracking-wider">Advies</th>
+          <tr className="border-b border-slate-200 dark:border-slate-700">
+            <th className="text-left py-3 px-4 text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider sticky left-0 bg-white dark:bg-slate-800 z-10">Aandeel</th>
+            <th className="text-left py-3 px-4 text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider">Sector</th>
+            <th className="text-right py-3 px-4 text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider">Aantal</th>
+            <th className="text-right py-3 px-4 text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider">Koers</th>
+            <th className="text-right py-3 px-4 text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider">Waarde</th>
+            <th className="text-right py-3 px-4 text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider">P&L</th>
+            <th className="text-right py-3 px-4 text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider">P&L %</th>
+            <th className="text-right py-3 px-4 text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider">Dag %</th>
+            <th className="text-right py-3 px-4 text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider">Gewicht</th>
+            <th className="text-center py-3 px-4 text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider">Advies</th>
           </tr>
         </thead>
         <tbody>
           {sorted.map((h) => (
             <tr
               key={h.ticker}
-              className="border-b border-slate-50 even:bg-slate-50/30 hover:bg-slate-100/50 transition-colors"
+              className="border-b border-slate-50 dark:border-slate-700/30 even:bg-slate-50/30 dark:even:bg-slate-700/10 hover:bg-slate-100/50 dark:hover:bg-slate-700/30 transition-colors"
             >
               <td className="py-3 px-4 sticky left-0 bg-inherit z-10">
-                <div className="font-medium text-slate-900">{h.name}</div>
-                <div className="text-xs text-slate-400">{h.ticker}</div>
+                <div className="font-medium text-slate-900 dark:text-slate-100">{h.name}</div>
+                <div className="text-xs text-slate-400 dark:text-slate-500">{h.ticker}</div>
               </td>
-              <td className="py-3 px-4 text-slate-500 text-xs">{h.sector}</td>
-              <td className="py-3 px-4 text-right text-slate-700">{formatNumber(h.shares)}</td>
+              <td className="py-3 px-4 text-slate-500 dark:text-slate-400 text-xs">{h.sector}</td>
+              <td className="py-3 px-4 text-right text-slate-700 dark:text-slate-300">{formatNumber(h.shares)}</td>
               <td className="py-3 px-4 text-right">
                 {h.currency !== 'EUR' ? (
                   <>
-                    <div className="text-slate-700">{formatLocalPrice(h.price_local, h.currency)}</div>
-                    <div className="text-xs text-slate-400">{formatEuro(h.price_eur)}</div>
+                    <div className="text-slate-700 dark:text-slate-300">{formatLocalPrice(h.price_local, h.currency)}</div>
+                    <div className="text-xs text-slate-400 dark:text-slate-500">{formatEuro(h.price_eur)}</div>
                   </>
                 ) : (
-                  <div className="text-slate-700">{formatEuro(h.price_eur)}</div>
+                  <div className="text-slate-700 dark:text-slate-300">{formatEuro(h.price_eur)}</div>
                 )}
               </td>
-              <td className="py-3 px-4 text-right font-medium text-slate-900">{formatEuro(h.value)}</td>
+              <td className="py-3 px-4 text-right font-medium text-slate-900 dark:text-slate-100">{formatEuro(h.value)}</td>
               <td className={`py-3 px-4 text-right font-medium ${pnlColor(h.pnl_nominal)}`}>
                 {formatEuro(h.pnl_nominal)}
               </td>
@@ -55,7 +55,7 @@ export function PositionsTable({ holdings }: { holdings: EnrichedHolding[] }) {
               <td className={`py-3 px-4 text-right ${pnlColor(h.day_change_pct)}`}>
                 {formatPct(h.day_change_pct)}
               </td>
-              <td className="py-3 px-4 text-right text-slate-700">{(h.weight || 0).toFixed(1)}%</td>
+              <td className="py-3 px-4 text-right text-slate-700 dark:text-slate-300">{(h.weight || 0).toFixed(1)}%</td>
               <td className="py-3 px-4 text-center">
                 {h.advice && (
                   <span

@@ -5,6 +5,7 @@ import { KpiCard } from '@/components/dashboard/KpiCard'
 import { Skeleton } from '@/components/ui/skeleton'
 import { formatPct, formatNumber } from '@/lib/formatters'
 import { SECTOR_COLORS, ADVICE_COLORS } from '@/lib/colors'
+import { useIsDark } from '@/hooks/useIsDark'
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
   PieChart, Pie,
@@ -27,6 +28,7 @@ interface XRayData {
 }
 
 function HorizontalBarChart({ data, colorIndex = 0 }: { data: BreakdownItem[]; colorIndex?: number }) {
+  const isDark = useIsDark()
   const chartData = data.map((d) => ({
     name: d.name,
     weight: +(d.weight * 100).toFixed(1),
@@ -36,11 +38,17 @@ function HorizontalBarChart({ data, colorIndex = 0 }: { data: BreakdownItem[]; c
   return (
     <ResponsiveContainer width="100%" height={data.length * 36 + 20}>
       <BarChart data={chartData} layout="vertical" margin={{ left: 0, right: 16, top: 4, bottom: 4 }}>
-        <XAxis type="number" tickFormatter={(v) => `${v}%`} fontSize={11} stroke="#94a3b8" />
-        <YAxis type="category" dataKey="name" width={100} fontSize={12} stroke="#64748b" tickLine={false} />
+        <XAxis type="number" tickFormatter={(v) => `${v}%`} fontSize={11} stroke={isDark ? '#64748b' : '#94a3b8'} />
+        <YAxis type="category" dataKey="name" width={100} fontSize={12} stroke={isDark ? '#94a3b8' : '#64748b'} tickLine={false} />
         <Tooltip
           formatter={(v: unknown) => `${Number(v).toFixed(1)}%`}
-          contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: '12px' }}
+          contentStyle={{
+            borderRadius: '12px',
+            border: isDark ? '1px solid #334155' : '1px solid #e2e8f0',
+            fontSize: '12px',
+            backgroundColor: isDark ? '#1e293b' : '#ffffff',
+            color: isDark ? '#e2e8f0' : '#1e293b',
+          }}
         />
         <Bar dataKey="weight" radius={[0, 6, 6, 0]} barSize={20}>
           {chartData.map((_, i) => (
@@ -53,6 +61,7 @@ function HorizontalBarChart({ data, colorIndex = 0 }: { data: BreakdownItem[]; c
 }
 
 function AdviesDonut({ data }: { data: BreakdownItem[] }) {
+  const isDark = useIsDark()
   const chartData = data.map((d) => ({
     name: d.name,
     value: +(d.weight * 100).toFixed(1),
@@ -83,7 +92,13 @@ function AdviesDonut({ data }: { data: BreakdownItem[] }) {
             </Pie>
             <Tooltip
               formatter={(v: unknown) => `${Number(v).toFixed(1)}%`}
-              contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: '12px' }}
+              contentStyle={{
+                borderRadius: '12px',
+                border: isDark ? '1px solid #334155' : '1px solid #e2e8f0',
+                fontSize: '12px',
+                backgroundColor: isDark ? '#1e293b' : '#ffffff',
+                color: isDark ? '#e2e8f0' : '#1e293b',
+              }}
             />
           </PieChart>
         </ResponsiveContainer>
@@ -96,9 +111,9 @@ function AdviesDonut({ data }: { data: BreakdownItem[] }) {
                 className="w-2.5 h-2.5 rounded-full"
                 style={{ backgroundColor: getColor(item.name) }}
               />
-              <span className="text-slate-600">{item.name}</span>
+              <span className="text-slate-600 dark:text-slate-400">{item.name}</span>
             </div>
-            <span className="text-slate-400 text-xs">
+            <span className="text-slate-400 dark:text-slate-500 text-xs">
               {item.value.toFixed(1)}% ({item.count})
             </span>
           </div>
@@ -147,9 +162,9 @@ export default function XRayPage() {
   if (error || !data) {
     return (
       <div className="text-center py-20">
-        <p className="text-slate-400 mb-4">Kan data niet laden.</p>
-        {error && <p className="text-sm text-slate-400 mb-4">{error}</p>}
-        <button onClick={fetchData} className="text-sm text-[#1B3A5C] hover:underline">Opnieuw proberen</button>
+        <p className="text-slate-400 dark:text-slate-500 mb-4">Kan data niet laden.</p>
+        {error && <p className="text-sm text-slate-400 dark:text-slate-500 mb-4">{error}</p>}
+        <button onClick={fetchData} className="text-sm text-[#1B3A5C] dark:text-[#E8B34A] hover:underline">Opnieuw proberen</button>
       </div>
     )
   }
@@ -160,7 +175,7 @@ export default function XRayPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-semibold text-slate-900 mb-6">X-Ray Analyse</h1>
+      <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-6">X-Ray Analyse</h1>
 
       {/* KPI row */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -181,26 +196,26 @@ export default function XRayPage() {
       </div>
 
       {/* Sector + Geografie */}
-      <h2 className="text-sm font-semibold text-slate-900 mb-3">Verdeling per categorie</h2>
+      <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-3">Verdeling per categorie</h2>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-2xl border border-slate-200/60 p-5 hover:shadow-sm transition-shadow">
-          <h3 className="text-sm font-semibold text-slate-900 mb-4">Sectoren</h3>
+        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 p-5 hover:shadow-sm transition-shadow">
+          <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-4">Sectoren</h3>
           <HorizontalBarChart data={sectors} />
         </div>
-        <div className="bg-white rounded-2xl border border-slate-200/60 p-5 hover:shadow-sm transition-shadow">
-          <h3 className="text-sm font-semibold text-slate-900 mb-4">Geografie</h3>
+        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 p-5 hover:shadow-sm transition-shadow">
+          <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-4">Geografie</h3>
           <HorizontalBarChart data={geo} colorIndex={3} />
         </div>
       </div>
 
       {/* Valuta + Advies */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-2xl border border-slate-200/60 p-5 hover:shadow-sm transition-shadow">
-          <h3 className="text-sm font-semibold text-slate-900 mb-4">Valuta</h3>
+        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 p-5 hover:shadow-sm transition-shadow">
+          <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-4">Valuta</h3>
           <HorizontalBarChart data={currencies} colorIndex={6} />
         </div>
-        <div className="bg-white rounded-2xl border border-slate-200/60 p-5 hover:shadow-sm transition-shadow">
-          <h3 className="text-sm font-semibold text-slate-900 mb-4">Adviesverdeling</h3>
+        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 p-5 hover:shadow-sm transition-shadow">
+          <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-4">Adviesverdeling</h3>
           <AdviesDonut data={advice} />
         </div>
       </div>
