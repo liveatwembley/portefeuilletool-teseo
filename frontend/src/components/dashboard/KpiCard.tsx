@@ -11,20 +11,40 @@ interface KpiCardProps {
 
 export function KpiCard({ label, value, delta, sublabel, hero = false, pnlValue }: KpiCardProps) {
   const colorClass = pnlValue != null ? pnlColor(pnlValue) : 'text-slate-900'
+  const borderAccent = pnlValue != null
+    ? pnlValue > 0
+      ? 'border-l-green-500'
+      : pnlValue < 0
+        ? 'border-l-red-500'
+        : ''
+    : ''
 
   return (
-    <div className={`rounded-2xl border border-slate-200/60 bg-white p-5 ${hero ? 'col-span-2' : ''}`}>
+    <div
+      className={[
+        'rounded-2xl border border-slate-200/60 bg-white p-5',
+        hero ? 'col-span-2 sm:col-span-2 lg:col-span-2' : '',
+        pnlValue != null ? `border-l-[3px] ${borderAccent}` : '',
+      ].filter(Boolean).join(' ')}
+    >
       <p className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-1">{label}</p>
-      <p className={`${hero ? 'text-3xl' : 'text-xl'} font-semibold ${colorClass} tracking-tight`}>
+      <p className={`${hero ? 'text-3xl' : 'text-2xl'} font-semibold ${colorClass} tracking-tight`}>
         {value}
       </p>
       {delta && (
-        <p className={`text-sm mt-0.5 ${pnlValue != null ? pnlColor(pnlValue) : 'text-slate-500'}`}>
+        <span
+          className={[
+            'inline-block mt-1.5 px-2 py-0.5 rounded-md text-xs font-medium',
+            pnlValue != null && pnlValue > 0 ? 'bg-green-50 text-green-700' : '',
+            pnlValue != null && pnlValue < 0 ? 'bg-red-50 text-red-600' : '',
+            pnlValue == null || pnlValue === 0 ? 'bg-slate-50 text-slate-500' : '',
+          ].filter(Boolean).join(' ')}
+        >
           {delta}
-        </p>
+        </span>
       )}
       {sublabel && (
-        <p className="text-xs text-slate-400 mt-1">{sublabel}</p>
+        <p className="text-xs text-slate-400 mt-1.5">{sublabel}</p>
       )}
     </div>
   )

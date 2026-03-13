@@ -8,17 +8,52 @@ import { formatEuro, formatPct, formatNumber } from '@/lib/formatters'
 import { Skeleton } from '@/components/ui/skeleton'
 
 export default function OverzichtPage() {
-  const { data, loading } = usePortfolio()
+  const { data, loading, error, refresh } = usePortfolio()
 
   if (loading) {
     return (
       <div className="space-y-6">
-        <div className="grid grid-cols-5 gap-4">
-          {Array.from({ length: 5 }).map((_, i) => (
+        <Skeleton className="h-8 w-64 rounded-lg" />
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+          <Skeleton className="h-28 rounded-2xl col-span-2 sm:col-span-2 lg:col-span-2" />
+          {Array.from({ length: 3 }).map((_, i) => (
             <Skeleton key={i} className="h-28 rounded-2xl" />
           ))}
         </div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-10 rounded-xl" />
+          ))}
+        </div>
+        <Skeleton className="h-72 rounded-2xl" />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Skeleton className="h-64 rounded-2xl" />
+          <Skeleton className="h-64 rounded-2xl" />
+        </div>
         <Skeleton className="h-96 rounded-2xl" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-20">
+        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-red-50 mb-4">
+          <svg className="w-8 h-8 text-red-500" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+          </svg>
+        </div>
+        <p className="text-lg font-medium text-slate-700 mb-1">Fout bij laden</p>
+        <p className="text-sm text-slate-400 mb-6">{error}</p>
+        <button
+          onClick={refresh}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#1B3A5C] text-white text-sm font-medium hover:bg-[#162f4a] transition-colors"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182" />
+          </svg>
+          Opnieuw proberen
+        </button>
       </div>
     )
   }
@@ -65,8 +100,11 @@ export default function OverzichtPage() {
 
   return (
     <div className="space-y-6">
+      {/* Page title */}
+      <h1 className="text-xl font-semibold text-slate-900 tracking-tight">Portefeuille Overzicht</h1>
+
       {/* KPI Bar */}
-      <div className="grid grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
         <KpiCard
           label="Portefeuillewaarde"
           value={formatEuro(meta.portfolio_total)}
@@ -98,7 +136,7 @@ export default function OverzichtPage() {
       </div>
 
       {/* Quick insights */}
-      <div className="grid grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {meta.fx_rates?.['EUR/USD'] && (
           <div className="rounded-xl bg-white border border-slate-200/60 px-4 py-2.5 flex items-center justify-between">
             <span className="text-xs text-slate-400">EUR/USD</span>
@@ -114,39 +152,46 @@ export default function OverzichtPage() {
         {best && (
           <div className="rounded-xl bg-green-50 border border-green-200/60 px-4 py-2.5 flex items-center justify-between">
             <span className="text-xs text-green-600">Beste</span>
-            <span className="text-sm font-medium text-green-700">{best.name} {formatPct(best.pnl_pct)}</span>
+            <span className="text-sm font-medium text-green-700 truncate ml-2">{best.name} {formatPct(best.pnl_pct)}</span>
           </div>
         )}
         {worst && (
           <div className="rounded-xl bg-red-50 border border-red-200/60 px-4 py-2.5 flex items-center justify-between">
             <span className="text-xs text-red-600">Slechtste</span>
-            <span className="text-sm font-medium text-red-700">{worst.name} {formatPct(worst.pnl_pct)}</span>
+            <span className="text-sm font-medium text-red-700 truncate ml-2">{worst.name} {formatPct(worst.pnl_pct)}</span>
           </div>
         )}
       </div>
 
-      {/* Treemap */}
-      <div className="bg-white rounded-2xl border border-slate-200/60 p-5">
-        <h2 className="text-sm font-semibold text-slate-900 mb-4">Portefeuille Treemap</h2>
-        <TreemapChart holdings={holdings} />
+      {/* --- VERDELING --- */}
+      <div>
+        <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4">Verdeling</h2>
+
+        {/* Treemap */}
+        <div className="bg-white rounded-2xl border border-slate-200/60 p-5 mb-6">
+          <h3 className="text-sm font-semibold text-slate-900 mb-4">Portefeuille Treemap</h3>
+          <TreemapChart holdings={holdings} />
+        </div>
+
+        {/* Sector + Currency donuts */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="bg-white rounded-2xl border border-slate-200/60 p-5">
+            <h3 className="text-sm font-semibold text-slate-900 mb-4">Sectoren</h3>
+            <SectorDonut data={sectorData} />
+          </div>
+          <div className="bg-white rounded-2xl border border-slate-200/60 p-5">
+            <h3 className="text-sm font-semibold text-slate-900 mb-4">Valuta</h3>
+            <SectorDonut data={currData} />
+          </div>
+        </div>
       </div>
 
-      {/* Sector + Currency donuts */}
-      <div className="grid grid-cols-2 gap-6">
+      {/* --- POSITIES --- */}
+      <div>
+        <h2 className="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-4">Posities</h2>
         <div className="bg-white rounded-2xl border border-slate-200/60 p-5">
-          <h2 className="text-sm font-semibold text-slate-900 mb-4">Sectoren</h2>
-          <SectorDonut data={sectorData} />
+          <PositionsTable holdings={holdings} />
         </div>
-        <div className="bg-white rounded-2xl border border-slate-200/60 p-5">
-          <h2 className="text-sm font-semibold text-slate-900 mb-4">Valuta</h2>
-          <SectorDonut data={currData} />
-        </div>
-      </div>
-
-      {/* Positions table */}
-      <div className="bg-white rounded-2xl border border-slate-200/60 p-5">
-        <h2 className="text-sm font-semibold text-slate-900 mb-4">Alle Posities</h2>
-        <PositionsTable holdings={holdings} />
       </div>
     </div>
   )

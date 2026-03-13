@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Line,
   ComposedChart,
@@ -57,17 +57,24 @@ export default function RendementPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
+  const fetchData = useCallback(() => {
+    setLoading(true)
+    setError(null)
     api.get<PerformanceData>('/api/portfolio/performance')
       .then(setData)
       .catch(e => setError(e.message))
       .finally(() => setLoading(false))
   }, [])
 
+  useEffect(() => {
+    fetchData()
+  }, [fetchData])
+
   if (loading) {
     return (
       <div className="space-y-6">
-        <div className="grid grid-cols-3 gap-4">
+        <Skeleton className="h-7 w-40 rounded-lg" />
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {Array.from({ length: 3 }).map((_, i) => (
             <Skeleton key={i} className="h-28 rounded-2xl" />
           ))}
@@ -79,9 +86,10 @@ export default function RendementPage() {
 
   if (error || !data) {
     return (
-      <div className="text-center py-20 text-slate-400">
-        <p className="text-lg">Kan rendementdata niet laden.</p>
-        {error && <p className="text-sm mt-2">{error}</p>}
+      <div className="text-center py-20">
+        <p className="text-slate-400 mb-4">Kan data niet laden.</p>
+        {error && <p className="text-sm text-slate-400 mb-4">{error}</p>}
+        <button onClick={fetchData} className="text-sm text-[#1B3A5C] hover:underline">Opnieuw proberen</button>
       </div>
     )
   }
@@ -90,9 +98,9 @@ export default function RendementPage() {
 
   if (snapshots.length === 0) {
     return (
-      <div className="text-center py-20 text-slate-400">
-        <p className="text-lg">Geen snapshots gevonden.</p>
-        <p className="text-sm mt-2">Importeer data om het rendement te bekijken.</p>
+      <div className="text-center py-20">
+        <p className="text-slate-400 mb-4">Geen snapshots gevonden.</p>
+        <p className="text-sm text-slate-400">Importeer data om het rendement te bekijken.</p>
       </div>
     )
   }
@@ -151,6 +159,8 @@ export default function RendementPage() {
 
   return (
     <div className="space-y-6">
+      <h1 className="text-xl font-semibold text-slate-900 mb-6">Rendement</h1>
+
       {/* KPI Bar */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <KpiCard
@@ -174,15 +184,16 @@ export default function RendementPage() {
       </div>
 
       {/* Performance chart */}
-      <div className="bg-white rounded-2xl border border-slate-200/60 p-5">
-        <h2 className="text-sm font-semibold text-slate-900 mb-4">
+      <h2 className="text-sm font-semibold text-slate-900 mb-3">Waardeontwikkeling</h2>
+      <div className="bg-white rounded-2xl border border-slate-200/60 p-5 hover:shadow-sm transition-shadow">
+        <h3 className="text-sm font-semibold text-slate-900 mb-4">
           Portefeuillewaarde over tijd
           {benchmarkKeys.length > 0 && (
             <span className="text-slate-400 font-normal ml-2">
               (benchmarks genormaliseerd naar startwaarde)
             </span>
           )}
-        </h2>
+        </h3>
         <ResponsiveContainer width="100%" height={380}>
           <ComposedChart data={chartData} margin={{ top: 5, right: 20, left: 10, bottom: 5 }}>
             <defs>
@@ -202,7 +213,7 @@ export default function RendementPage() {
               minTickGap={40}
             />
             <YAxis
-              tickFormatter={(v: number) => `${(v / 1000).toFixed(0)}K`}
+              tickFormatter={(v: unknown) => `${(Number(v) / 1000).toFixed(0)}K`}
               tick={{ fontSize: 11, fill: '#94a3b8' }}
               tickLine={false}
               axisLine={false}

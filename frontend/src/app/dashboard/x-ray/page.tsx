@@ -1,9 +1,9 @@
 'use client'
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { api } from '@/lib/api'
 import { KpiCard } from '@/components/dashboard/KpiCard'
 import { Skeleton } from '@/components/ui/skeleton'
-import { formatEuro, formatPct, formatNumber } from '@/lib/formatters'
+import { formatPct, formatNumber } from '@/lib/formatters'
 import { SECTOR_COLORS, ADVICE_COLORS } from '@/lib/colors'
 import {
   BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
@@ -113,22 +113,29 @@ export default function XRayPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
+  const fetchData = useCallback(() => {
+    setLoading(true)
+    setError(null)
     api.get<XRayData>('/api/portfolio/xray')
       .then(setData)
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false))
   }, [])
 
+  useEffect(() => {
+    fetchData()
+  }, [fetchData])
+
   if (loading) {
     return (
       <div className="space-y-6">
-        <div className="grid grid-cols-3 gap-4">
+        <Skeleton className="h-7 w-40 rounded-lg" />
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {Array.from({ length: 3 }).map((_, i) => (
             <Skeleton key={i} className="h-28 rounded-2xl" />
           ))}
         </div>
-        <div className="grid grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {Array.from({ length: 4 }).map((_, i) => (
             <Skeleton key={i} className="h-72 rounded-2xl" />
           ))}
@@ -139,9 +146,10 @@ export default function XRayPage() {
 
   if (error || !data) {
     return (
-      <div className="text-center py-20 text-slate-400">
-        <p className="text-lg">Kon X-Ray data niet laden.</p>
-        {error && <p className="text-sm mt-2">{error}</p>}
+      <div className="text-center py-20">
+        <p className="text-slate-400 mb-4">Kan data niet laden.</p>
+        {error && <p className="text-sm text-slate-400 mb-4">{error}</p>}
+        <button onClick={fetchData} className="text-sm text-[#1B3A5C] hover:underline">Opnieuw proberen</button>
       </div>
     )
   }
@@ -152,8 +160,10 @@ export default function XRayPage() {
 
   return (
     <div className="space-y-6">
+      <h1 className="text-xl font-semibold text-slate-900 mb-6">X-Ray Analyse</h1>
+
       {/* KPI row */}
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <KpiCard
           label="Top-5 gewicht"
           value={formatPct(concentration.top5_weight * 100)}
@@ -171,25 +181,26 @@ export default function XRayPage() {
       </div>
 
       {/* Sector + Geografie */}
-      <div className="grid grid-cols-2 gap-6">
-        <div className="bg-white rounded-2xl border border-slate-200/60 p-5">
-          <h2 className="text-sm font-semibold text-slate-900 mb-4">Sectoren</h2>
+      <h2 className="text-sm font-semibold text-slate-900 mb-3">Verdeling per categorie</h2>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white rounded-2xl border border-slate-200/60 p-5 hover:shadow-sm transition-shadow">
+          <h3 className="text-sm font-semibold text-slate-900 mb-4">Sectoren</h3>
           <HorizontalBarChart data={sectors} />
         </div>
-        <div className="bg-white rounded-2xl border border-slate-200/60 p-5">
-          <h2 className="text-sm font-semibold text-slate-900 mb-4">Geografie</h2>
+        <div className="bg-white rounded-2xl border border-slate-200/60 p-5 hover:shadow-sm transition-shadow">
+          <h3 className="text-sm font-semibold text-slate-900 mb-4">Geografie</h3>
           <HorizontalBarChart data={geo} colorIndex={3} />
         </div>
       </div>
 
       {/* Valuta + Advies */}
-      <div className="grid grid-cols-2 gap-6">
-        <div className="bg-white rounded-2xl border border-slate-200/60 p-5">
-          <h2 className="text-sm font-semibold text-slate-900 mb-4">Valuta</h2>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white rounded-2xl border border-slate-200/60 p-5 hover:shadow-sm transition-shadow">
+          <h3 className="text-sm font-semibold text-slate-900 mb-4">Valuta</h3>
           <HorizontalBarChart data={currencies} colorIndex={6} />
         </div>
-        <div className="bg-white rounded-2xl border border-slate-200/60 p-5">
-          <h2 className="text-sm font-semibold text-slate-900 mb-4">Adviesverdeling</h2>
+        <div className="bg-white rounded-2xl border border-slate-200/60 p-5 hover:shadow-sm transition-shadow">
+          <h3 className="text-sm font-semibold text-slate-900 mb-4">Adviesverdeling</h3>
           <AdviesDonut data={advice} />
         </div>
       </div>
