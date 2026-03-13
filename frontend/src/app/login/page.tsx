@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { api } from '@/lib/api'
 
 export default function LoginPage() {
@@ -28,12 +29,15 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 rounded-lg bg-[#1B3A5C] flex items-center justify-center mx-auto mb-4">
-            <span className="text-white font-bold text-2xl">T</span>
-          </div>
-          <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Teseo</h1>
-          <p className="text-sm text-slate-400 dark:text-slate-500 mt-1">Bluebird Capital</p>
+        <div className="flex justify-center mb-8">
+          <Image
+            src="/logo.png"
+            alt="Bluebird Capital"
+            width={280}
+            height={100}
+            priority
+            className="dark:brightness-0 dark:invert"
+          />
         </div>
 
         <form onSubmit={handleSubmit} className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200/60 dark:border-slate-700/60 p-6 space-y-4">

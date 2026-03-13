@@ -1,6 +1,7 @@
 'use client'
 import { useState } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
+import Image from 'next/image'
 import { api } from '@/lib/api'
 import { useTheme } from '@/components/ThemeProvider'
 
@@ -40,17 +41,16 @@ export function Header() {
       <div className="max-w-screen-2xl mx-auto px-4 md:px-6">
         <div className="flex items-center justify-between h-14 md:h-16">
           {/* --- LOGO --- */}
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-[#1B3A5C] flex items-center justify-center">
-              <span className="text-white font-bold text-sm">T</span>
-            </div>
-            <div>
-              <h1 className="text-base font-semibold text-slate-900 dark:text-slate-100 leading-tight">Teseo</h1>
-              <p className="hidden md:block text-[10px] text-slate-400 dark:text-slate-500 leading-tight tracking-wider uppercase">
-                Bluebird Capital
-              </p>
-            </div>
-          </div>
+          <button onClick={() => handleNav('/dashboard/overzicht')} className="flex items-center gap-2.5 hover:opacity-80 transition-opacity">
+            <Image
+              src="/logo.png"
+              alt="Bluebird Capital"
+              width={140}
+              height={40}
+              priority
+              className="h-8 w-auto dark:brightness-0 dark:invert"
+            />
+          </button>
 
           {/* --- DESKTOP NAV --- */}
           <nav className="hidden md:flex items-center gap-1">
