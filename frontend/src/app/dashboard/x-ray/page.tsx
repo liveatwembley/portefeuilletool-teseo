@@ -195,6 +195,21 @@ export default function XRayPage() {
         />
       </div>
 
+      {/* Concentration warnings */}
+      {(concentration.n_positions > 30 || hhi > 0.15 || concentration.top5_weight > 0.6) && (
+        <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/40 rounded-xl px-4 py-3 text-sm text-amber-800 dark:text-amber-300 space-y-1">
+          {concentration.n_positions > 30 && (
+            <p>Let op: meer dan 30 posities. Principe 8 adviseert max 30 voor 95% van het kapitaal.</p>
+          )}
+          {hhi > 0.15 && (
+            <p>Waarschuwing: portefeuille is sterk geconcentreerd (HHI &gt; 0.15).</p>
+          )}
+          {concentration.top5_weight > 0.6 && (
+            <p>Top-5 posities vormen meer dan 60% van de portefeuille.</p>
+          )}
+        </div>
+      )}
+
       {/* Sector + Geografie */}
       <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-3">Verdeling per categorie</h2>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

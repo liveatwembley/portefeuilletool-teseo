@@ -13,6 +13,11 @@ export const ADVICE_COLORS: Record<string, string> = {
   verkopen: COLOR_NEGATIVE,
 }
 
+// QARP-bedrijven (Quality at a Reasonable Price) - per januari 2026
+export const QARP_TICKERS = new Set([
+  'AAPL', 'BRK-B', 'DPZ', 'EW', 'MAR', 'MA', 'TT', 'V', 'WAT', 'ZTS'
+])
+
 export const SECTOR_COLORS = [
   '#1B3A5C', '#2563eb', '#7c3aed', '#db2777', '#ea580c',
   '#15803d', '#0891b2', '#4f46e5', '#c026d3', '#d97706',

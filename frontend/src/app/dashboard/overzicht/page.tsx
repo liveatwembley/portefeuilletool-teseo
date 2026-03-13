@@ -73,6 +73,19 @@ export default function OverzichtPage() {
   const winners = holdings.filter(h => (h.pnl_pct || 0) > 0).length
   const losers = holdings.filter(h => (h.pnl_pct || 0) < 0).length
 
+  // Cash sublabel with Buffett Indicator context
+  const cashPct = meta.cash_pct
+  const cashSublabel = cashPct > 10
+    ? `${cashPct.toFixed(1)}% — overweeg te investeren`
+    : cashPct > 7.5
+      ? `${cashPct.toFixed(1)}% — hoog`
+      : `${cashPct.toFixed(1)}%`
+  const cashSublabelColor = cashPct > 10
+    ? 'text-amber-600 dark:text-amber-400'
+    : cashPct > 7.5
+      ? 'text-amber-500 dark:text-amber-400'
+      : undefined
+
   // Sector data
   const sectorMap: Record<string, number> = {}
   holdings.forEach(h => {
@@ -120,7 +133,8 @@ export default function OverzichtPage() {
         <KpiCard
           label="Cash"
           value={formatEuro(meta.cash)}
-          sublabel={`${meta.cash_pct.toFixed(1)}%`}
+          sublabel={cashSublabel}
+          sublabelClassName={cashSublabelColor}
         />
         <KpiCard
           label="Posities"

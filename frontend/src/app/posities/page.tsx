@@ -13,7 +13,7 @@ import {
   pnlColor,
   pnlBgColor,
 } from '@/lib/formatters'
-import { ADVICE_COLORS, COLOR_BRAND } from '@/lib/colors'
+import { ADVICE_COLORS, COLOR_BRAND, QARP_TICKERS } from '@/lib/colors'
 import { useIsDark } from '@/hooks/useIsDark'
 import type { EnrichedHolding, FundamentalData, Transaction } from '@/lib/types'
 import {
@@ -518,12 +518,35 @@ function DetailPanel({
   const { fundamentals, style, transactions } = detail
   const isNonEur = holding.currency !== 'EUR'
 
+  // Holding period calculation
+  const holdingPeriod = (() => {
+    if (!transactions || transactions.length === 0) return null
+    const dates = transactions.map(tx => tx.transaction_date).filter(Boolean).sort()
+    if (dates.length === 0) return null
+    const earliest = new Date(dates[0])
+    const now = new Date()
+    const totalMonths = (now.getFullYear() - earliest.getFullYear()) * 12 + (now.getMonth() - earliest.getMonth())
+    const years = Math.floor(totalMonths / 12)
+    const months = totalMonths % 12
+    const duration = years > 0
+      ? months > 0 ? `${years}j ${months}m` : `${years}j`
+      : `${totalMonths}m`
+    const dateStr = earliest.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short', year: 'numeric' })
+    return { dateStr, duration }
+  })()
+
   return (
     <div className="space-y-6">
       {/* --- HEADER --- */}
       <div>
         <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">{holding.name}</h2>
-        <p className="text-sm text-slate-400 dark:text-slate-500">{holding.ticker} &middot; {holding.sector} &middot; {holding.geo}</p>
+        <p className="text-sm text-slate-400 dark:text-slate-500">
+          {holding.ticker}
+          {QARP_TICKERS.has(holding.ticker) && (
+            <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-medium bg-[#E8B34A] text-white ml-1">QARP</span>
+          )}
+          {' '}&middot; {holding.sector} &middot; {holding.geo}
+        </p>
         <div className="flex items-baseline gap-3 mt-2">
           <span className="text-2xl font-bold text-slate-900 dark:text-slate-100">
             {formatLocalPrice(holding.price_local, holding.currency)}
@@ -534,6 +557,17 @@ function DetailPanel({
         </div>
         {isNonEur && (
           <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">{formatEuro(holding.price_eur)}</p>
+        )}
+        {/* Holding period */}
+        {holdingPeriod ? (
+          <p className="text-xs text-slate-400 dark:text-slate-500 mt-1.5 flex items-center gap-1">
+            <svg className="w-3.5 h-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5" />
+            </svg>
+            In portefeuille sinds {holdingPeriod.dateStr} ({holdingPeriod.duration})
+          </p>
+        ) : (
+          <p className="text-xs text-slate-400 dark:text-slate-500 mt-1.5">Geen transactiehistorie</p>
         )}
       </div>
 

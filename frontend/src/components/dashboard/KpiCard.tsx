@@ -5,11 +5,12 @@ interface KpiCardProps {
   value: string
   delta?: string | null
   sublabel?: string | null
+  sublabelClassName?: string
   hero?: boolean
   pnlValue?: number | null
 }
 
-export function KpiCard({ label, value, delta, sublabel, hero = false, pnlValue }: KpiCardProps) {
+export function KpiCard({ label, value, delta, sublabel, sublabelClassName, hero = false, pnlValue }: KpiCardProps) {
   const colorClass = pnlValue != null ? pnlColor(pnlValue) : 'text-slate-900 dark:text-slate-100'
   const borderAccent = pnlValue != null
     ? pnlValue > 0
@@ -44,7 +45,7 @@ export function KpiCard({ label, value, delta, sublabel, hero = false, pnlValue 
         </span>
       )}
       {sublabel && (
-        <p className="text-xs text-slate-400 dark:text-slate-500 mt-1.5">{sublabel}</p>
+        <p className={`text-xs mt-1.5 ${sublabelClassName || 'text-slate-400 dark:text-slate-500'}`}>{sublabel}</p>
       )}
     </div>
   )

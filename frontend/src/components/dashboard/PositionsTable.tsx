@@ -1,7 +1,7 @@
 'use client'
 import type { EnrichedHolding } from '@/lib/types'
 import { formatEuro, formatPct, formatNumber, formatLocalPrice, pnlColor } from '@/lib/formatters'
-import { ADVICE_COLORS } from '@/lib/colors'
+import { ADVICE_COLORS, QARP_TICKERS } from '@/lib/colors'
 
 export function PositionsTable({ holdings }: { holdings: EnrichedHolding[] }) {
   const sorted = [...holdings].sort((a, b) => (b.value || 0) - (a.value || 0))
@@ -30,8 +30,18 @@ export function PositionsTable({ holdings }: { holdings: EnrichedHolding[] }) {
               className="border-b border-slate-50 dark:border-slate-700/30 even:bg-slate-50/30 dark:even:bg-slate-700/10 hover:bg-slate-100/50 dark:hover:bg-slate-700/30 transition-colors"
             >
               <td className="py-3 px-4 sticky left-0 bg-inherit z-10">
-                <div className="font-medium text-slate-900 dark:text-slate-100">{h.name}</div>
-                <div className="text-xs text-slate-400 dark:text-slate-500">{h.ticker}</div>
+                <div className="font-medium text-slate-900 dark:text-slate-100 flex items-center gap-1">
+                  {h.name}
+                  {(h.pnl_pct || 0) > 15 && (h.day_change_pct || 0) > 0 && (
+                    <span className="inline-block w-2 h-2 rounded-full bg-green-400 dark:bg-green-500 flex-shrink-0" title="Water the flowers" />
+                  )}
+                </div>
+                <div className="text-xs text-slate-400 dark:text-slate-500">
+                  {h.ticker}
+                  {QARP_TICKERS.has(h.ticker) && (
+                    <span className="inline-block px-1.5 py-0.5 rounded text-[10px] font-medium bg-[#E8B34A] text-white ml-1">QARP</span>
+                  )}
+                </div>
               </td>
               <td className="py-3 px-4 text-slate-500 dark:text-slate-400 text-xs">{h.sector}</td>
               <td className="py-3 px-4 text-right text-slate-700 dark:text-slate-300">{formatNumber(h.shares)}</td>
