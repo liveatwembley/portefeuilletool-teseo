@@ -33,7 +33,7 @@ export default function LoginPage() {
             <span className="text-white font-bold text-2xl">T</span>
           </div>
           <h1 className="text-2xl font-semibold text-slate-900">Teseo</h1>
-          <p className="text-sm text-slate-400 mt-1">AICB Equity Fund</p>
+          <p className="text-sm text-slate-400 mt-1">Bluebird Capital</p>
         </div>
 
         <form onSubmit={handleSubmit} className="bg-white rounded-2xl border border-slate-200/60 p-6 space-y-4">

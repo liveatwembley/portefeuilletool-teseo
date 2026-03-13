@@ -1,6 +1,6 @@
 'use client'
 import type { EnrichedHolding } from '@/lib/types'
-import { formatEuro, formatPct, formatNumber, pnlColor, dualPrice } from '@/lib/formatters'
+import { formatEuro, formatPct, formatNumber, formatLocalPrice, pnlColor } from '@/lib/formatters'
 import { ADVICE_COLORS } from '@/lib/colors'
 
 export function PositionsTable({ holdings }: { holdings: EnrichedHolding[] }) {
@@ -36,9 +36,13 @@ export function PositionsTable({ holdings }: { holdings: EnrichedHolding[] }) {
               <td className="py-3 px-4 text-slate-500 text-xs">{h.sector}</td>
               <td className="py-3 px-4 text-right text-slate-700">{formatNumber(h.shares)}</td>
               <td className="py-3 px-4 text-right">
-                <div className="text-slate-700">{formatEuro(h.price_eur)}</div>
-                {h.currency !== 'EUR' && (
-                  <div className="text-xs text-slate-400">{h.currency} {h.price_local?.toFixed(2)}</div>
+                {h.currency !== 'EUR' ? (
+                  <>
+                    <div className="text-slate-700">{formatLocalPrice(h.price_local, h.currency)}</div>
+                    <div className="text-xs text-slate-400">{formatEuro(h.price_eur)}</div>
+                  </>
+                ) : (
+                  <div className="text-slate-700">{formatEuro(h.price_eur)}</div>
                 )}
               </td>
               <td className="py-3 px-4 text-right font-medium text-slate-900">{formatEuro(h.value)}</td>

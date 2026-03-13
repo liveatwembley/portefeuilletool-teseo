@@ -45,6 +45,14 @@ export function dualPrice(priceEur: number, priceLocal: number | null, currency:
   return `${eurStr} (${sym}${priceLocal.toFixed(2)})`
 }
 
+const CURRENCY_SYMBOLS: Record<string, string> = { USD: '$', GBP: '£', DKK: 'kr ', HKD: 'HK$' }
+
+export function formatLocalPrice(price: number | null | undefined, currency: string): string {
+  if (price == null) return '—'
+  const sym = CURRENCY_SYMBOLS[currency] || currency + ' '
+  return `${sym}${price.toFixed(2)}`
+}
+
 export function pnlColor(value: number | null | undefined): string {
   if (value == null || value === 0) return 'text-slate-500'
   return value > 0 ? 'text-green-700' : 'text-red-600'

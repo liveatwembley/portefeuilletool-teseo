@@ -5,7 +5,7 @@ import "./globals.css"
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
 
 export const metadata: Metadata = {
-  title: "Teseo — AICB Equity Fund",
+  title: "Teseo — Bluebird Capital Dashboard",
   description: "Portefeuillemanagementtool",
 }
 

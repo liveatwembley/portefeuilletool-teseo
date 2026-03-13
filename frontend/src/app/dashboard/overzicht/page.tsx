@@ -1,4 +1,5 @@
 'use client'
+import { useState } from 'react'
 import { usePortfolio } from '@/hooks/usePortfolio'
 import { KpiCard } from '@/components/dashboard/KpiCard'
 import { PositionsTable } from '@/components/dashboard/PositionsTable'
@@ -9,14 +10,15 @@ import { Skeleton } from '@/components/ui/skeleton'
 
 export default function OverzichtPage() {
   const { data, loading, error, refresh } = usePortfolio()
+  const [showCash, setShowCash] = useState(false)
 
   if (loading) {
     return (
       <div className="space-y-6">
         <Skeleton className="h-8 w-64 rounded-lg" />
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-          <Skeleton className="h-28 rounded-2xl col-span-2 sm:col-span-2 lg:col-span-2" />
-          {Array.from({ length: 3 }).map((_, i) => (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <Skeleton className="h-28 rounded-2xl col-span-2" />
+          {Array.from({ length: 2 }).map((_, i) => (
             <Skeleton key={i} className="h-28 rounded-2xl" />
           ))}
         </div>
@@ -68,8 +70,6 @@ export default function OverzichtPage() {
   }
 
   const { meta, holdings } = data
-  const totalPnl = holdings.reduce((sum, h) => sum + (h.pnl_nominal || 0), 0)
-  const totalPnlPct = meta.total_value > 0 ? (totalPnl / (meta.total_value - totalPnl)) * 100 : 0
   const winners = holdings.filter(h => (h.pnl_pct || 0) > 0).length
   const losers = holdings.filter(h => (h.pnl_pct || 0) < 0).length
 
@@ -104,7 +104,7 @@ export default function OverzichtPage() {
       <h1 className="text-xl font-semibold text-slate-900 tracking-tight">Portefeuille Overzicht</h1>
 
       {/* KPI Bar */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <KpiCard
           label="Portefeuillewaarde"
           value={formatEuro(meta.portfolio_total)}
@@ -112,13 +112,7 @@ export default function OverzichtPage() {
           hero
         />
         <KpiCard
-          label="Totaal P&L"
-          value={formatEuro(totalPnl)}
-          delta={formatPct(totalPnlPct)}
-          pnlValue={totalPnl}
-        />
-        <KpiCard
-          label="Dag"
+          label="Dagresultaat"
           value={formatEuro(meta.day_delta)}
           delta={formatPct(meta.day_delta_pct)}
           pnlValue={meta.day_delta}
@@ -169,8 +163,19 @@ export default function OverzichtPage() {
 
         {/* Treemap */}
         <div className="bg-white rounded-2xl border border-slate-200/60 p-5 mb-6">
-          <h3 className="text-sm font-semibold text-slate-900 mb-4">Portefeuille Treemap</h3>
-          <TreemapChart holdings={holdings} />
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-semibold text-slate-900">Portefeuille Treemap</h3>
+            <label className="flex items-center gap-2 cursor-pointer select-none">
+              <span className="text-xs text-slate-400">Incl. cash</span>
+              <button
+                onClick={() => setShowCash(!showCash)}
+                className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${showCash ? 'bg-[#1B3A5C]' : 'bg-slate-200'}`}
+              >
+                <span className={`inline-block h-3.5 w-3.5 rounded-full bg-white transition-transform ${showCash ? 'translate-x-[18px]' : 'translate-x-[3px]'}`} />
+              </button>
+            </label>
+          </div>
+          <TreemapChart holdings={holdings} cash={showCash ? meta.cash : undefined} />
         </div>
 
         {/* Sector + Currency donuts */}

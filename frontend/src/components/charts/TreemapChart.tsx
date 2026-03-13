@@ -54,11 +54,11 @@ function luminance(hex: string): number {
 }
 
 function textColorForBg(bgColor: string): string {
-  return luminance(bgColor) > 0.4 ? '#1e293b' : '#ffffff'
+  return luminance(bgColor) > 0.3 ? '#1e293b' : '#ffffff'
 }
 
 function subtextColorForBg(bgColor: string): string {
-  return luminance(bgColor) > 0.4 ? 'rgba(30,41,59,0.65)' : 'rgba(255,255,255,0.75)'
+  return luminance(bgColor) > 0.3 ? 'rgba(30,41,59,0.65)' : 'rgba(255,255,255,0.75)'
 }
 
 // --- DATA TYPES ---
@@ -190,7 +190,7 @@ function CustomTooltip({ active, payload }: any) {
 
 // --- MAIN COMPONENT ---
 
-export function TreemapChart({ holdings }: { holdings: EnrichedHolding[] }) {
+export function TreemapChart({ holdings, cash }: { holdings: EnrichedHolding[], cash?: number }) {
   // Groepeer per sector
   const sectors: Record<string, TreemapData> = {}
   holdings.forEach(h => {
@@ -206,6 +206,25 @@ export function TreemapChart({ holdings }: { holdings: EnrichedHolding[] }) {
       value: h.value || 0,
     })
   })
+
+  // Voeg cash toe als apart blok
+  if (cash && cash > 0) {
+    const totalValue = holdings.reduce((sum, h) => sum + (h.value || 0), 0) + cash
+    const cashWeight = (cash / totalValue) * 100
+    sectors['Cash'] = {
+      name: 'Cash',
+      children: [{
+        name: 'Cash',
+        ticker: 'CASH',
+        size: cash,
+        pnl: 0,
+        pnl_nominal: 0,
+        weight: cashWeight,
+        value: cash,
+      }],
+    }
+  }
+
   const data = Object.values(sectors).filter(s => s.children.length > 0)
 
   if (data.length === 0) return null

@@ -43,7 +43,7 @@ export function Header() {
             <div>
               <h1 className="text-base font-semibold text-slate-900 leading-tight">Teseo</h1>
               <p className="hidden md:block text-[10px] text-slate-400 leading-tight tracking-wider uppercase">
-                AICB Equity Fund
+                Bluebird Capital
               </p>
             </div>
           </div>
