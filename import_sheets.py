@@ -24,6 +24,7 @@ logger = logging.getLogger(__name__)
 # ─── CONFIG ──────────────────────────────────────────────────
 
 GOOGLE_CREDENTIALS_JSON = os.environ.get('GOOGLE_CREDENTIALS', '')
+SHEETS_FOLDER_ID = '1ixfRjf2u-9o00f6iymIVYjIewoj6jluc'
 
 # Ticker mapping uit centrale config (single source of truth)
 from config.tickers import get_import_sheets_map
@@ -88,17 +89,31 @@ def _get_gspread_client():
 
 def list_spreadsheets():
     """
-    Scan alle spreadsheets die gedeeld zijn met het service account.
+    Scan spreadsheets in de portefeuillenota's Drive folder.
 
     Returns: list van dicts met spreadsheet info, gesorteerd op naam.
     """
     gc = _get_gspread_client()
     sheets = []
     for s in gc.list_spreadsheet_files():
-        sheets.append({
-            'id': s['id'],
-            'name': s['name'],
-        })
+        if s.get('parents') and SHEETS_FOLDER_ID in s['parents']:
+            sheets.append({'id': s['id'], 'name': s['name']})
+    if not sheets:
+        # Fallback: gspread list_spreadsheet_files geeft niet altijd parents mee.
+        # Gebruik Drive API rechtstreeks.
+        try:
+            from googleapiclient.discovery import build
+            creds = gc.http_client.auth
+            drive = build('drive', 'v3', credentials=creds, cache_discovery=False)
+            query = (
+                f"'{SHEETS_FOLDER_ID}' in parents"
+                f" and mimeType='application/vnd.google-apps.spreadsheet'"
+                f" and trashed=false"
+            )
+            result = drive.files().list(q=query, fields='files(id, name)').execute()
+            sheets = [{'id': f['id'], 'name': f['name']} for f in result.get('files', [])]
+        except Exception as e:
+            logger.warning("Drive API fallback mislukt: %s", e)
     sheets.sort(key=lambda x: x['name'])
     return sheets
 
@@ -342,12 +357,13 @@ def _import_single_tab(supabase, ws, snapshot_date, position_ids):
 
 # ─── APP-CALLABLE FUNCTIONS ─────────────────────────────────
 
-def list_available_tabs(sheet_id=None):
+def list_available_tabs(sheet_id=None, min_year=2026):
     """
     Scan spreadsheet(s) en retourneer lijst van beschikbare datum-tabs.
 
     Args:
-        sheet_id: specifiek spreadsheet ID om te scannen. Als None, scan alle.
+        sheet_id: specifiek spreadsheet ID om te scannen. Als None, scan folder.
+        min_year: alleen tabs vanaf dit jaar (default 2026, historische data zit al in DB).
 
     Returns: list van dicts met tab info, gesorteerd op datum (nieuwste eerst).
     """
@@ -357,22 +373,25 @@ def list_available_tabs(sheet_id=None):
     if sheet_id:
         sheet_ids = [sheet_id]
     else:
-        sheet_ids = [s['id'] for s in gc.list_spreadsheet_files()]
+        sheet_ids = [s['id'] for s in list_spreadsheets()]
 
     for sid in sheet_ids:
         try:
             spreadsheet = gc.open_by_key(sid)
             for ws in spreadsheet.worksheets():
                 parsed_date = parse_date_from_tab(ws.title)
-                if parsed_date:
-                    clamped = clamp_future_date(parsed_date)
-                    tabs.append({
-                        'worksheet': ws,
-                        'tab_name': ws.title,
-                        'date': clamped,
-                        'spreadsheet': spreadsheet.title,
-                        'sheet_id': sid,
-                    })
+                if not parsed_date:
+                    continue
+                if min_year and int(parsed_date[:4]) < min_year:
+                    continue
+                clamped = clamp_future_date(parsed_date)
+                tabs.append({
+                    'worksheet': ws,
+                    'tab_name': ws.title,
+                    'date': clamped,
+                    'spreadsheet': spreadsheet.title,
+                    'sheet_id': sid,
+                })
         except Exception as e:
             logger.warning("Kan spreadsheet %s niet openen: %s", sid, e)
 
@@ -428,7 +447,7 @@ def main():
 
     supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-    tabs = list_available_tabs()
+    tabs = list_available_tabs(min_year=None)
     print(f"Totaal gevonden datum-tabs: {len(tabs)}")
 
     position_ids = _ensure_position_ids(supabase)
