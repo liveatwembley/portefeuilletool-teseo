@@ -1,8 +1,198 @@
-export default function XRayPage() {
+'use client'
+import { useEffect, useState } from 'react'
+import { api } from '@/lib/api'
+import { KpiCard } from '@/components/dashboard/KpiCard'
+import { Skeleton } from '@/components/ui/skeleton'
+import { formatEuro, formatPct, formatNumber } from '@/lib/formatters'
+import { SECTOR_COLORS, ADVICE_COLORS } from '@/lib/colors'
+import {
+  BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell,
+  PieChart, Pie,
+} from 'recharts'
+
+interface BreakdownItem {
+  name: string
+  weight: number
+  value?: number
+  count?: number
+}
+
+interface XRayData {
+  concentration: { top5_weight: number; hhi: number; n_positions: number }
+  sectors: BreakdownItem[]
+  geo: BreakdownItem[]
+  currencies: BreakdownItem[]
+  advice: BreakdownItem[]
+  holdings: unknown[]
+}
+
+function HorizontalBarChart({ data, colorIndex = 0 }: { data: BreakdownItem[]; colorIndex?: number }) {
+  const chartData = data.map((d) => ({
+    name: d.name,
+    weight: +(d.weight * 100).toFixed(1),
+    value: d.value,
+  }))
+
   return (
-    <div className="text-center py-20">
-      <h1 className="text-2xl font-semibold text-slate-900 mb-2">X-Ray Analyse</h1>
-      <p className="text-slate-400">Binnenkort beschikbaar</p>
+    <ResponsiveContainer width="100%" height={data.length * 36 + 20}>
+      <BarChart data={chartData} layout="vertical" margin={{ left: 0, right: 16, top: 4, bottom: 4 }}>
+        <XAxis type="number" tickFormatter={(v) => `${v}%`} fontSize={11} stroke="#94a3b8" />
+        <YAxis type="category" dataKey="name" width={100} fontSize={12} stroke="#64748b" tickLine={false} />
+        <Tooltip
+          formatter={(v: unknown) => `${Number(v).toFixed(1)}%`}
+          contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: '12px' }}
+        />
+        <Bar dataKey="weight" radius={[0, 6, 6, 0]} barSize={20}>
+          {chartData.map((_, i) => (
+            <Cell key={i} fill={SECTOR_COLORS[(i + colorIndex) % SECTOR_COLORS.length]} />
+          ))}
+        </Bar>
+      </BarChart>
+    </ResponsiveContainer>
+  )
+}
+
+function AdviesDonut({ data }: { data: BreakdownItem[] }) {
+  const chartData = data.map((d) => ({
+    name: d.name,
+    value: +(d.weight * 100).toFixed(1),
+    count: d.count || 0,
+  }))
+
+  const getColor = (name: string) => {
+    const key = name.toLowerCase()
+    return ADVICE_COLORS[key] || '#94a3b8'
+  }
+
+  return (
+    <div className="flex items-center gap-6">
+      <div className="w-48 h-48">
+        <ResponsiveContainer>
+          <PieChart>
+            <Pie
+              data={chartData}
+              innerRadius={55}
+              outerRadius={80}
+              paddingAngle={2}
+              dataKey="value"
+              stroke="none"
+            >
+              {chartData.map((d, i) => (
+                <Cell key={i} fill={getColor(d.name)} />
+              ))}
+            </Pie>
+            <Tooltip
+              formatter={(v: unknown) => `${Number(v).toFixed(1)}%`}
+              contentStyle={{ borderRadius: '12px', border: '1px solid #e2e8f0', fontSize: '12px' }}
+            />
+          </PieChart>
+        </ResponsiveContainer>
+      </div>
+      <div className="flex-1 space-y-1.5">
+        {chartData.map((item) => (
+          <div key={item.name} className="flex items-center justify-between text-sm">
+            <div className="flex items-center gap-2">
+              <div
+                className="w-2.5 h-2.5 rounded-full"
+                style={{ backgroundColor: getColor(item.name) }}
+              />
+              <span className="text-slate-600">{item.name}</span>
+            </div>
+            <span className="text-slate-400 text-xs">
+              {item.value.toFixed(1)}% ({item.count})
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+export default function XRayPage() {
+  const [data, setData] = useState<XRayData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    api.get<XRayData>('/api/portfolio/xray')
+      .then(setData)
+      .catch((err) => setError(err.message))
+      .finally(() => setLoading(false))
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="grid grid-cols-3 gap-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} className="h-28 rounded-2xl" />
+          ))}
+        </div>
+        <div className="grid grid-cols-2 gap-6">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-72 rounded-2xl" />
+          ))}
+        </div>
+      </div>
+    )
+  }
+
+  if (error || !data) {
+    return (
+      <div className="text-center py-20 text-slate-400">
+        <p className="text-lg">Kon X-Ray data niet laden.</p>
+        {error && <p className="text-sm mt-2">{error}</p>}
+      </div>
+    )
+  }
+
+  const { concentration, sectors, geo, currencies, advice } = data
+  const hhi = concentration.hhi
+  const hhiLabel = hhi < 0.1 ? 'Goed gespreid' : hhi < 0.15 ? 'Matig geconcentreerd' : 'Sterk geconcentreerd'
+
+  return (
+    <div className="space-y-6">
+      {/* KPI row */}
+      <div className="grid grid-cols-3 gap-4">
+        <KpiCard
+          label="Top-5 gewicht"
+          value={formatPct(concentration.top5_weight * 100)}
+          sublabel={concentration.top5_weight > 0.6 ? 'Geconcentreerd' : 'Gespreid'}
+        />
+        <KpiCard
+          label="HHI Index"
+          value={formatNumber(hhi, 4)}
+          sublabel={hhiLabel}
+        />
+        <KpiCard
+          label="Aantal posities"
+          value={formatNumber(concentration.n_positions)}
+        />
+      </div>
+
+      {/* Sector + Geografie */}
+      <div className="grid grid-cols-2 gap-6">
+        <div className="bg-white rounded-2xl border border-slate-200/60 p-5">
+          <h2 className="text-sm font-semibold text-slate-900 mb-4">Sectoren</h2>
+          <HorizontalBarChart data={sectors} />
+        </div>
+        <div className="bg-white rounded-2xl border border-slate-200/60 p-5">
+          <h2 className="text-sm font-semibold text-slate-900 mb-4">Geografie</h2>
+          <HorizontalBarChart data={geo} colorIndex={3} />
+        </div>
+      </div>
+
+      {/* Valuta + Advies */}
+      <div className="grid grid-cols-2 gap-6">
+        <div className="bg-white rounded-2xl border border-slate-200/60 p-5">
+          <h2 className="text-sm font-semibold text-slate-900 mb-4">Valuta</h2>
+          <HorizontalBarChart data={currencies} colorIndex={6} />
+        </div>
+        <div className="bg-white rounded-2xl border border-slate-200/60 p-5">
+          <h2 className="text-sm font-semibold text-slate-900 mb-4">Adviesverdeling</h2>
+          <AdviesDonut data={advice} />
+        </div>
+      </div>
     </div>
   )
 }
