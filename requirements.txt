@@ -1,0 +1,26 @@
+# Core Framework & UI
+streamlit
+watchdog
+
+# Data & Berekeningen
+pandas
+numpy
+plotly
+
+# Backend & Database
+supabase
+python-dotenv
+
+# Market Data
+yfinance
+
+# Google Sheets Import
+google-api-python-client
+google-auth
+gspread
+
+# IBKR Flex Query
+requests
+
+# Extra
+pydantic
