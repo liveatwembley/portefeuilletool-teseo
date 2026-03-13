@@ -207,7 +207,7 @@ export default function OverzichtPage() {
               </button>
             </label>
           </div>
-          <TreemapChart holdings={holdings} cash={showCash ? meta.cash : undefined} />
+          <TreemapChart holdings={holdings} cash={showCash ? totalCash : undefined} />
         </div>
 
         {/* Sector + Currency donuts */}

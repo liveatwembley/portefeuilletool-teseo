@@ -46,15 +46,23 @@ def list_tabs(sheet_id: str, user=Depends(get_current_user)):
 @router.post('/sheets/import')
 def import_tab(sheet_id: str, tab_name: str, db=Depends(get_db), user=Depends(get_current_user)):
     from core.import_sheets import list_available_tabs, import_specific_tab
-    tabs = list_available_tabs(sheet_id=sheet_id)
+    try:
+        tabs = list_available_tabs(sheet_id=sheet_id)
+    except Exception as e:
+        logger.error("Fout bij ophalen tabs voor import: %s", e)
+        raise HTTPException(status_code=500, detail=f"Kan tabs niet laden: {str(e)}")
     target = None
     for t in tabs:
         if t['tab_name'] == tab_name:
             target = t
             break
     if not target:
-        return {'status': 'error', 'message': f'Tab {tab_name} niet gevonden'}
-    return import_specific_tab(db, target)
+        raise HTTPException(status_code=404, detail=f'Tab "{tab_name}" niet gevonden')
+    try:
+        return import_specific_tab(db, target)
+    except Exception as e:
+        logger.error("Fout bij import van %s: %s", tab_name, e)
+        raise HTTPException(status_code=500, detail=f"Import mislukt: {str(e)}")
 
 
 @router.get('/history')
