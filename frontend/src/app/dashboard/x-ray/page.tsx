@@ -18,20 +18,38 @@ interface BreakdownItem {
   count?: number
 }
 
+interface RawXRayData {
+  concentration: { top5_weight: number; hhi: number; n_positions: number }
+  sectors: { sector: string; weight: number; value?: number; pnl?: number; count?: number }[]
+  geo: { geo: string; weight: number; value?: number; count?: number }[]
+  currencies: { currency: string; weight: number; value?: number; count?: number }[]
+  advice: { advice: string; count: number; value?: number }[]
+}
+
 interface XRayData {
   concentration: { top5_weight: number; hhi: number; n_positions: number }
   sectors: BreakdownItem[]
   geo: BreakdownItem[]
   currencies: BreakdownItem[]
   advice: BreakdownItem[]
-  holdings: unknown[]
+}
+
+function normalizeXRayData(raw: RawXRayData): XRayData {
+  const totalAdviceCount = raw.advice.reduce((sum, a) => sum + a.count, 0) || 1
+  return {
+    concentration: raw.concentration,
+    sectors: raw.sectors.map((s) => ({ name: s.sector, weight: s.weight, value: s.value, count: s.count })),
+    geo: raw.geo.map((g) => ({ name: g.geo, weight: g.weight, value: g.value, count: g.count })),
+    currencies: raw.currencies.map((c) => ({ name: c.currency, weight: c.weight, value: c.value, count: c.count })),
+    advice: raw.advice.map((a) => ({ name: a.advice, weight: (a.count / totalAdviceCount) * 100, value: a.value, count: a.count })),
+  }
 }
 
 function HorizontalBarChart({ data, colorIndex = 0 }: { data: BreakdownItem[]; colorIndex?: number }) {
   const isDark = useIsDark()
   const chartData = data.map((d) => ({
     name: d.name,
-    weight: +(d.weight * 100).toFixed(1),
+    weight: +d.weight.toFixed(1),
     value: d.value,
   }))
 
@@ -64,7 +82,7 @@ function AdviesDonut({ data }: { data: BreakdownItem[] }) {
   const isDark = useIsDark()
   const chartData = data.map((d) => ({
     name: d.name,
-    value: +(d.weight * 100).toFixed(1),
+    value: +d.weight.toFixed(1),
     count: d.count || 0,
   }))
 
@@ -131,8 +149,8 @@ export default function XRayPage() {
   const fetchData = useCallback(() => {
     setLoading(true)
     setError(null)
-    api.get<XRayData>('/api/portfolio/xray')
-      .then(setData)
+    api.get<RawXRayData>('/api/portfolio/xray')
+      .then((raw) => setData(normalizeXRayData(raw)))
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false))
   }, [])
@@ -171,7 +189,7 @@ export default function XRayPage() {
 
   const { concentration, sectors, geo, currencies, advice } = data
   const hhi = concentration.hhi
-  const hhiLabel = hhi < 0.1 ? 'Goed gespreid' : hhi < 0.15 ? 'Matig geconcentreerd' : 'Sterk geconcentreerd'
+  const hhiLabel = hhi < 1000 ? 'Goed gespreid' : hhi < 1500 ? 'Matig geconcentreerd' : 'Sterk geconcentreerd'
 
   return (
     <div className="space-y-6">
@@ -181,12 +199,12 @@ export default function XRayPage() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <KpiCard
           label="Top-5 gewicht"
-          value={formatPct(concentration.top5_weight * 100)}
-          sublabel={concentration.top5_weight > 0.6 ? 'Geconcentreerd' : 'Gespreid'}
+          value={formatPct(concentration.top5_weight)}
+          sublabel={concentration.top5_weight > 60 ? 'Geconcentreerd' : 'Gespreid'}
         />
         <KpiCard
           label="HHI Index"
-          value={formatNumber(hhi, 4)}
+          value={formatNumber(hhi, 1)}
           sublabel={hhiLabel}
         />
         <KpiCard
@@ -196,15 +214,15 @@ export default function XRayPage() {
       </div>
 
       {/* Concentration warnings */}
-      {(concentration.n_positions > 30 || hhi > 0.15 || concentration.top5_weight > 0.6) && (
+      {(concentration.n_positions > 30 || hhi > 1500 || concentration.top5_weight > 60) && (
         <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/40 rounded-xl px-4 py-3 text-sm text-amber-800 dark:text-amber-300 space-y-1">
           {concentration.n_positions > 30 && (
             <p>Let op: meer dan 30 posities. Principe 8 adviseert max 30 voor 95% van het kapitaal.</p>
           )}
-          {hhi > 0.15 && (
-            <p>Waarschuwing: portefeuille is sterk geconcentreerd (HHI &gt; 0.15).</p>
+          {hhi > 1500 && (
+            <p>Waarschuwing: portefeuille is sterk geconcentreerd (HHI &gt; 1500).</p>
           )}
-          {concentration.top5_weight > 0.6 && (
+          {concentration.top5_weight > 60 && (
             <p>Top-5 posities vormen meer dan 60% van de portefeuille.</p>
           )}
         </div>

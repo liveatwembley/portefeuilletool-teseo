@@ -3,59 +3,31 @@ import { Treemap, ResponsiveContainer, Tooltip } from 'recharts'
 import type { EnrichedHolding } from '@/lib/types'
 import { formatEuro, formatPct } from '@/lib/formatters'
 import { useIsDark } from '@/hooks/useIsDark'
+import { SECTOR_COLORS } from '@/lib/colors'
 
-// --- COLOR UTILITIES ---
+// --- SECTOR COLOR PALETTE ---
+// Deep, muted tones that work in both light and dark mode
+// Each sector gets a distinct hue, text is always white for maximum contrast
 
-function interpolateColor(c1: [number, number, number], c2: [number, number, number], t: number): string {
-  const r = Math.round(c1[0] + (c2[0] - c1[0]) * t)
-  const g = Math.round(c1[1] + (c2[1] - c1[1]) * t)
-  const b = Math.round(c1[2] + (c2[2] - c1[2]) * t)
-  return `rgb(${r},${g},${b})`
-}
+const SECTOR_PALETTE = [
+  '#2563eb', // blue
+  '#7c3aed', // violet
+  '#0891b2', // cyan
+  '#059669', // emerald
+  '#d97706', // amber
+  '#dc2626', // red
+  '#4f46e5', // indigo
+  '#0d9488', // teal
+  '#c026d3', // fuchsia
+  '#ea580c', // orange
+  '#1B3A5C', // navy (brand)
+  '#6366f1', // light indigo
+  '#15803d', // green
+  '#db2777', // pink
+  '#854d0e', // dark amber
+]
 
-function pnlToColor(pnl: number): string {
-  const deepGreen: [number, number, number] = [21, 128, 61]
-  const lightGreen: [number, number, number] = [187, 247, 208]
-  const lightRed: [number, number, number] = [254, 202, 202]
-  const deepRed: [number, number, number] = [220, 38, 38]
-
-  if (pnl >= 20) return `rgb(${deepGreen.join(',')})`
-  if (pnl > 0) {
-    const t = pnl / 20
-    return interpolateColor(lightGreen, deepGreen, t)
-  }
-  if (pnl === 0) return `rgb(${lightGreen.join(',')})`
-  if (pnl >= -15) {
-    const t = Math.abs(pnl) / 15
-    return interpolateColor(lightRed, deepRed, t)
-  }
-  return `rgb(${deepRed.join(',')})`
-}
-
-function luminance(hex: string): number {
-  let r: number, g: number, b: number
-  const rgbMatch = hex.match(/rgb\((\d+),(\d+),(\d+)\)/)
-  if (rgbMatch) {
-    r = parseInt(rgbMatch[1]) / 255
-    g = parseInt(rgbMatch[2]) / 255
-    b = parseInt(rgbMatch[3]) / 255
-  } else {
-    const h = hex.replace('#', '')
-    r = parseInt(h.substring(0, 2), 16) / 255
-    g = parseInt(h.substring(2, 4), 16) / 255
-    b = parseInt(h.substring(4, 6), 16) / 255
-  }
-  const toLinear = (c: number) => c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)
-  return 0.2126 * toLinear(r) + 0.7152 * toLinear(g) + 0.0722 * toLinear(b)
-}
-
-function textColorForBg(bgColor: string): string {
-  return luminance(bgColor) > 0.3 ? '#1e293b' : '#ffffff'
-}
-
-function subtextColorForBg(bgColor: string): string {
-  return luminance(bgColor) > 0.3 ? 'rgba(30,41,59,0.65)' : 'rgba(255,255,255,0.75)'
-}
+const CASH_COLOR = '#64748b' // slate-500
 
 // --- DATA TYPES ---
 
@@ -68,6 +40,7 @@ interface TreemapChild {
   pnl_nominal: number
   weight: number
   value: number
+  sectorIndex: number
 }
 
 interface TreemapData {
@@ -83,50 +56,49 @@ function CustomContentInner(
   props: any,
   isDark: boolean,
 ) {
-  const { x, y, width, height, name, ticker, pnl, weight } = props
+  const { x, y, width, height, ticker, pnl, weight, sectorIndex } = props
 
   if (props.children) return null
 
-  const fill = pnlToColor(pnl || 0)
-  const textColor = textColorForBg(fill)
-  const subColor = subtextColorForBg(fill)
-  const strokeColor = isDark ? '#334155' : '#e2e8f0'
+  const isCash = ticker === 'CASH'
+  const fill = isCash ? CASH_COLOR : SECTOR_PALETTE[sectorIndex % SECTOR_PALETTE.length]
+  const strokeColor = isDark ? '#1e293b' : '#ffffff'
 
-  if (width < 50 || height < 30) {
+  // P&L indicator: subtle brightness variation
+  // Positive P&L = slightly lighter, negative = slightly darker
+  const brightness = pnl > 0 ? 1.1 : pnl < -10 ? 0.85 : 1.0
+
+  if (width < 40 || height < 25) {
     return (
       <g>
-        <rect x={x} y={y} width={width} height={height} fill={fill} stroke={strokeColor} strokeWidth={1} />
+        <rect x={x} y={y} width={width} height={height} fill={fill} stroke={strokeColor} strokeWidth={2} opacity={brightness} />
       </g>
     )
   }
 
-  const showWeight = width >= 70 && height >= 45
-  const showName = width >= 100 && height >= 55
-  const tickerSize = width < 70 ? 10 : width < 120 ? 11 : 12
-  const labelToShow = ticker || (name || '').substring(0, 8)
-  const lineHeight = tickerSize + 3
-  const totalLines = 1 + (showWeight ? 1 : 0) + (showName ? 1 : 0)
+  // Always use white text — all sector colors are dark enough
+  const textColor = '#ffffff'
+  const subColor = 'rgba(255,255,255,0.7)'
+
+  const showWeight = width >= 65 && height >= 40
+  const showPnl = width >= 85 && height >= 52
+  const tickerSize = width < 70 ? 10 : width < 110 ? 11 : 13
+  const labelToShow = ticker || ''
+
+  const lineHeight = tickerSize + 4
+  const totalLines = 1 + (showWeight ? 1 : 0) + (showPnl ? 1 : 0)
   const blockHeight = totalLines * lineHeight
   const startY = y + (height - blockHeight) / 2 + tickerSize
 
+  // P&L color indicator
+  const pnlTextColor = pnl >= 0 ? '#86efac' : '#fca5a5' // green-300 / red-300
+
   return (
     <g>
-      <rect x={x} y={y} width={width} height={height} fill={fill} stroke={strokeColor} strokeWidth={1} />
-      {showName && (
-        <text
-          x={x + width / 2}
-          y={startY}
-          fill={subColor}
-          fontSize={tickerSize - 1}
-          textAnchor="middle"
-          dominantBaseline="auto"
-        >
-          {width >= 140 ? name : (name || '').substring(0, Math.floor(width / 7))}
-        </text>
-      )}
+      <rect x={x} y={y} width={width} height={height} fill={fill} stroke={strokeColor} strokeWidth={2} opacity={brightness} />
       <text
         x={x + width / 2}
-        y={showName ? startY + lineHeight : startY}
+        y={showPnl || showWeight ? startY : startY}
         fill={textColor}
         fontSize={tickerSize}
         fontWeight={700}
@@ -138,13 +110,26 @@ function CustomContentInner(
       {showWeight && (
         <text
           x={x + width / 2}
-          y={(showName ? startY + lineHeight : startY) + lineHeight}
+          y={startY + lineHeight}
           fill={subColor}
-          fontSize={tickerSize - 1}
+          fontSize={tickerSize - 2}
           textAnchor="middle"
           dominantBaseline="auto"
         >
           {(weight || 0).toFixed(1)}%
+        </text>
+      )}
+      {showPnl && (
+        <text
+          x={x + width / 2}
+          y={startY + lineHeight * 2}
+          fill={pnlTextColor}
+          fontSize={tickerSize - 2}
+          fontWeight={600}
+          textAnchor="middle"
+          dominantBaseline="auto"
+        >
+          {pnl >= 0 ? '+' : ''}{(pnl || 0).toFixed(1)}%
         </text>
       )}
     </g>
@@ -167,21 +152,21 @@ function CustomTooltipInner(
     : isDark ? 'text-red-400' : 'text-red-600'
 
   return (
-    <div className={`rounded-lg border shadow-xl px-4 py-3 text-sm min-w-[180px] ${
+    <div className={`rounded-xl border shadow-xl px-4 py-3 text-sm min-w-[200px] ${
       isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'
     }`}>
-      <p className={`font-semibold mb-1 ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>{item.name}</p>
-      <div className={`grid grid-cols-2 gap-x-4 gap-y-0.5 text-xs ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
+      <p className={`font-semibold mb-2 ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>{item.name}</p>
+      <div className={`grid grid-cols-2 gap-x-4 gap-y-1 text-xs ${isDark ? 'text-slate-400' : 'text-slate-600'}`}>
         <span>Ticker</span>
-        <span className={`text-right font-medium ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>{item.ticker}</span>
+        <span className={`text-right font-medium ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>{item.ticker}</span>
         <span>Waarde</span>
-        <span className={`text-right font-medium ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>{formatEuro(item.value)}</span>
-        <span>P&L</span>
-        <span className={`text-right font-medium ${pnlColorClass}`}>{formatEuro(item.pnl_nominal)}</span>
-        <span>Rendement</span>
-        <span className={`text-right font-medium ${pnlColorClass}`}>{formatPct(item.pnl)}</span>
+        <span className={`text-right font-medium ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>{formatEuro(item.value)}</span>
         <span>Gewicht</span>
-        <span className={`text-right font-medium ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>{(item.weight || 0).toFixed(1)}%</span>
+        <span className={`text-right font-medium ${isDark ? 'text-slate-200' : 'text-slate-800'}`}>{(item.weight || 0).toFixed(1)}%</span>
+        <span>P&L</span>
+        <span className={`text-right font-semibold ${pnlColorClass}`}>{formatEuro(item.pnl_nominal)}</span>
+        <span>Rendement</span>
+        <span className={`text-right font-semibold ${pnlColorClass}`}>{formatPct(item.pnl)}</span>
       </div>
     </div>
   )
@@ -192,10 +177,18 @@ function CustomTooltipInner(
 export function TreemapChart({ holdings, cash }: { holdings: EnrichedHolding[], cash?: number }) {
   const isDark = useIsDark()
 
+  // Bouw sectorindex op — elke sector krijgt een unieke kleur
+  const sectorList: string[] = []
+  holdings.forEach(h => {
+    const s = h.sector || 'Overig'
+    if (!sectorList.includes(s)) sectorList.push(s)
+  })
+
   // Groepeer per sector
   const sectors: Record<string, TreemapData> = {}
   holdings.forEach(h => {
     const s = h.sector || 'Overig'
+    const sectorIndex = sectorList.indexOf(s)
     if (!sectors[s]) sectors[s] = { name: s, children: [] }
     sectors[s].children.push({
       name: h.name,
@@ -205,10 +198,11 @@ export function TreemapChart({ holdings, cash }: { holdings: EnrichedHolding[], 
       pnl_nominal: h.pnl_nominal || 0,
       weight: h.weight || 0,
       value: h.value || 0,
+      sectorIndex,
     })
   })
 
-  // Voeg cash toe als apart blok
+  // Cash blok
   if (cash && cash > 0) {
     const totalValue = holdings.reduce((sum, h) => sum + (h.value || 0), 0) + cash
     const cashWeight = (cash / totalValue) * 100
@@ -222,15 +216,15 @@ export function TreemapChart({ holdings, cash }: { holdings: EnrichedHolding[], 
         pnl_nominal: 0,
         weight: cashWeight,
         value: cash,
+        sectorIndex: -1,
       }],
     }
   }
 
   const data = Object.values(sectors).filter(s => s.children.length > 0)
-
   if (data.length === 0) return null
 
-  const strokeColor = isDark ? '#334155' : '#e2e8f0'
+  const strokeColor = isDark ? '#1e293b' : '#ffffff'
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const CustomContent = (props: any) => CustomContentInner(props, isDark)
@@ -238,18 +232,32 @@ export function TreemapChart({ holdings, cash }: { holdings: EnrichedHolding[], 
   const CustomTooltip = (props: any) => CustomTooltipInner(props, isDark)
 
   return (
-    <div className="h-72 md:h-96">
-      <ResponsiveContainer width="100%" height="100%">
-        <Treemap
-          data={data}
-          dataKey="size"
-          aspectRatio={4 / 3}
-          stroke={strokeColor}
-          content={<CustomContent />}
-        >
-          <Tooltip content={<CustomTooltip />} cursor={false} />
-        </Treemap>
-      </ResponsiveContainer>
+    <div>
+      <div className="h-72 md:h-96">
+        <ResponsiveContainer width="100%" height="100%">
+          <Treemap
+            data={data}
+            dataKey="size"
+            aspectRatio={4 / 3}
+            stroke={strokeColor}
+            content={<CustomContent />}
+          >
+            <Tooltip content={<CustomTooltip />} cursor={false} />
+          </Treemap>
+        </ResponsiveContainer>
+      </div>
+      {/* Sector legend */}
+      <div className="flex flex-wrap gap-x-4 gap-y-1 mt-3 px-1">
+        {sectorList.map((sector, i) => (
+          <div key={sector} className="flex items-center gap-1.5">
+            <div
+              className="w-2.5 h-2.5 rounded-sm flex-shrink-0"
+              style={{ backgroundColor: SECTOR_PALETTE[i % SECTOR_PALETTE.length] }}
+            />
+            <span className="text-[11px] text-slate-500 dark:text-slate-400">{sector}</span>
+          </div>
+        ))}
+      </div>
     </div>
   )
 }

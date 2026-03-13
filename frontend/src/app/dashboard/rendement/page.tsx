@@ -15,8 +15,9 @@ import { useIsDark } from '@/hooks/useIsDark'
 interface SnapshotRow {
   id: number
   snapshot_date: string
-  total_value_eur: number
-  cash_eur: number
+  total_value_eur: number | null
+  cash_eur: number | null
+  cash_pct?: number | null
 }
 
 interface BenchmarkPoint {
@@ -31,14 +32,26 @@ interface PerformanceData {
 
 // --- DATE FORMATTING ---
 
-function formatDateNL(dateStr: string): string {
-  const d = new Date(dateStr)
-  return d.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short', year: '2-digit' })
+function formatDateNL(dateStr: string | null | undefined): string {
+  if (!dateStr) return '—'
+  try {
+    const d = new Date(dateStr)
+    if (isNaN(d.getTime())) return '—'
+    return d.toLocaleDateString('nl-NL', { day: 'numeric', month: 'short', year: '2-digit' })
+  } catch {
+    return '—'
+  }
 }
 
-function formatDateShort(dateStr: string): string {
-  const d = new Date(dateStr)
-  return d.toLocaleDateString('nl-NL', { month: 'short', year: '2-digit' })
+function formatDateShort(dateStr: string | null | undefined): string {
+  if (!dateStr) return '—'
+  try {
+    const d = new Date(dateStr)
+    if (isNaN(d.getTime())) return '—'
+    return d.toLocaleDateString('nl-NL', { month: 'short', year: '2-digit' })
+  } catch {
+    return '—'
+  }
 }
 
 // --- NORMALIZATION ---
@@ -98,10 +111,16 @@ export default function RendementPage() {
 
   const { snapshots, benchmarks } = data
 
-  if (snapshots.length === 0) {
+  // Filter out snapshots with null/undefined total_value_eur
+  const validSnapshots = (snapshots ?? []).filter(
+    (s): s is SnapshotRow & { total_value_eur: number } =>
+      s.total_value_eur != null && s.snapshot_date != null
+  )
+
+  if (validSnapshots.length === 0) {
     return (
       <div className="text-center py-20">
-        <p className="text-slate-400 dark:text-slate-500 mb-4">Geen snapshots gevonden.</p>
+        <p className="text-slate-400 dark:text-slate-500 mb-4">Geen data beschikbaar.</p>
         <p className="text-sm text-slate-400 dark:text-slate-500">Importeer data om het rendement te bekijken.</p>
       </div>
     )
@@ -109,7 +128,7 @@ export default function RendementPage() {
 
   // --- KPI CALCULATIONS ---
 
-  const sorted = [...snapshots].sort(
+  const sorted = [...validSnapshots].sort(
     (a, b) => new Date(a.snapshot_date).getTime() - new Date(b.snapshot_date).getTime()
   )
   const first = sorted[0]
@@ -121,7 +140,8 @@ export default function RendementPage() {
 
   // --- CHART DATA ---
 
-  const benchmarkKeys = Object.keys(benchmarks || {})
+  const safeBenchmarks = benchmarks ?? {}
+  const benchmarkKeys = Object.keys(safeBenchmarks)
   const portfolioBase = first.total_value_eur
 
   const dateMap: Record<string, Record<string, number>> = {}
@@ -132,10 +152,12 @@ export default function RendementPage() {
   })
 
   benchmarkKeys.forEach(key => {
-    const points = benchmarks[key]
-    if (!points || points.length === 0) return
+    const points = safeBenchmarks[key]
+    if (!points || !Array.isArray(points) || points.length === 0) return
+    const validPoints = points.filter(p => p.date != null && p.close != null)
+    if (validPoints.length === 0) return
     const normalized = normalizeToBase(
-      points.map(p => ({ date: p.date, value: p.close })),
+      validPoints.map(p => ({ date: p.date, value: p.close })),
       portfolioBase
     )
     normalized.forEach(p => {
@@ -149,7 +171,7 @@ export default function RendementPage() {
     date,
     portfolio: dateMap[date]['portfolio'] ?? null,
     ...benchmarkKeys.reduce((acc, key) => {
-      acc[key] = dateMap[date][key] ?? null
+      acc[key] = dateMap[date]?.[key] ?? null
       return acc
     }, {} as Record<string, number | null>),
   }))
@@ -179,7 +201,7 @@ export default function RendementPage() {
         />
         <KpiCard
           label="Aantal snapshots"
-          value={formatNumber(snapshots.length)}
+          value={formatNumber(validSnapshots.length)}
           sublabel={`${formatDateNL(first.snapshot_date)} - ${formatDateNL(last.snapshot_date)}`}
         />
       </div>
@@ -214,18 +236,25 @@ export default function RendementPage() {
               minTickGap={40}
             />
             <YAxis
-              tickFormatter={(v: unknown) => `${(Number(v) / 1000).toFixed(0)}K`}
+              tickFormatter={(v: unknown) => {
+                const n = Number(v)
+                if (isNaN(n)) return '—'
+                return `${(n / 1000).toFixed(0)}K`
+              }}
               tick={{ fontSize: 11, fill: tickColor }}
               tickLine={false}
               axisLine={false}
               width={50}
             />
             <Tooltip
-              formatter={(value: unknown, name: unknown) => [
-                formatEuro(Number(value)),
-                name === 'portfolio' ? 'Portefeuille' : String(name),
-              ]}
-              labelFormatter={(label: unknown) => formatDateNL(String(label))}
+              formatter={(value: unknown, name: unknown) => {
+                const n = Number(value)
+                return [
+                  isNaN(n) ? '—' : formatEuro(n),
+                  name === 'portfolio' ? 'Portefeuille' : String(name ?? ''),
+                ]
+              }}
+              labelFormatter={(label: unknown) => formatDateNL(label != null ? String(label) : null)}
               contentStyle={{
                 borderRadius: '12px',
                 border: isDark ? '1px solid #334155' : '1px solid #e2e8f0',
