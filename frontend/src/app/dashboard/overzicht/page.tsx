@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import { usePortfolio } from '@/hooks/usePortfolio'
 import { KpiCard } from '@/components/dashboard/KpiCard'
+import { TreasuryCard } from '@/components/dashboard/TreasuryCard'
 import { PositionsTable } from '@/components/dashboard/PositionsTable'
 import { SectorDonut } from '@/components/charts/SectorDonut'
 import { TreemapChart } from '@/components/charts/TreemapChart'
@@ -16,10 +17,14 @@ export default function OverzichtPage() {
     return (
       <div className="space-y-6">
         <Skeleton className="h-8 w-64 rounded-lg" />
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <Skeleton className="h-28 rounded-2xl col-span-2" />
-          {Array.from({ length: 2 }).map((_, i) => (
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+          {Array.from({ length: 3 }).map((_, i) => (
             <Skeleton key={i} className="h-28 rounded-2xl" />
+          ))}
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={`r2-${i}`} className="h-28 rounded-2xl" />
           ))}
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -70,6 +75,7 @@ export default function OverzichtPage() {
   }
 
   const { meta, holdings } = data
+  const treasury_eur = data.treasury_eur || 0
   const winners = holdings.filter(h => (h.pnl_pct || 0) > 0).length
   const losers = holdings.filter(h => (h.pnl_pct || 0) < 0).length
 
@@ -116,11 +122,11 @@ export default function OverzichtPage() {
       {/* Page title */}
       <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100 tracking-tight">Portefeuille Overzicht</h1>
 
-      {/* KPI Bar */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      {/* KPI Bar — Row 1 */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
         <KpiCard
           label="Portefeuillewaarde"
-          value={formatEuro(meta.portfolio_total)}
+          value={formatEuro(meta.portfolio_total + treasury_eur)}
           sublabel={`Snapshot ${meta.snapshot_date}`}
           hero
         />
@@ -131,40 +137,50 @@ export default function OverzichtPage() {
           pnlValue={meta.day_delta}
         />
         <KpiCard
-          label="Cash"
-          value={formatEuro(meta.cash)}
-          sublabel={cashSublabel}
-          sublabelClassName={cashSublabelColor}
-        />
-        <KpiCard
           label="Posities"
           value={formatNumber(holdings.length)}
           sublabel={`${winners}W / ${losers}L`}
         />
       </div>
 
+      {/* KPI Bar — Row 2: Liquide middelen */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+        <KpiCard
+          label="Cash (IBKR)"
+          value={formatEuro(meta.cash)}
+          sublabel={cashSublabel}
+          sublabelClassName={cashSublabelColor}
+        />
+        <TreasuryCard value={treasury_eur} onSaved={refresh} />
+        <KpiCard
+          label="Totaal Liquide Middelen"
+          value={formatEuro(meta.cash + treasury_eur)}
+          sublabel={`${((meta.cash + treasury_eur) / (meta.portfolio_total + treasury_eur) * 100).toFixed(1)}% van portefeuille`}
+        />
+      </div>
+
       {/* Quick insights */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         {meta.fx_rates?.['EUR/USD'] && (
-          <div className="rounded-xl bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 px-4 py-2.5 flex items-center justify-between">
+          <div className="rounded-md bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 px-4 py-2.5 flex items-center justify-between">
             <span className="text-xs text-slate-400 dark:text-slate-500">EUR/USD</span>
             <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{meta.fx_rates['EUR/USD'].toFixed(4)}</span>
           </div>
         )}
         {meta.fx_rates?.['EUR/GBP'] && (
-          <div className="rounded-xl bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 px-4 py-2.5 flex items-center justify-between">
+          <div className="rounded-md bg-white dark:bg-slate-800 border border-slate-200/60 dark:border-slate-700/60 px-4 py-2.5 flex items-center justify-between">
             <span className="text-xs text-slate-400 dark:text-slate-500">EUR/GBP</span>
             <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{meta.fx_rates['EUR/GBP'].toFixed(4)}</span>
           </div>
         )}
         {best && (
-          <div className="rounded-xl bg-green-50 dark:bg-green-900/20 border border-green-200/60 dark:border-green-800/40 px-4 py-2.5 flex items-center justify-between">
+          <div className="rounded-md bg-green-50 dark:bg-green-900/20 border border-green-200/60 dark:border-green-800/40 px-4 py-2.5 flex items-center justify-between">
             <span className="text-xs text-green-600 dark:text-green-400">Beste</span>
             <span className="text-sm font-medium text-green-700 dark:text-green-400 truncate ml-2">{best.name} {formatPct(best.pnl_pct)}</span>
           </div>
         )}
         {worst && (
-          <div className="rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200/60 dark:border-red-800/40 px-4 py-2.5 flex items-center justify-between">
+          <div className="rounded-md bg-red-50 dark:bg-red-900/20 border border-red-200/60 dark:border-red-800/40 px-4 py-2.5 flex items-center justify-between">
             <span className="text-xs text-red-600 dark:text-red-400">Slechtste</span>
             <span className="text-sm font-medium text-red-700 dark:text-red-400 truncate ml-2">{worst.name} {formatPct(worst.pnl_pct)}</span>
           </div>
@@ -176,7 +192,7 @@ export default function OverzichtPage() {
         <h2 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4">Verdeling</h2>
 
         {/* Treemap */}
-        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 p-5 mb-6">
+        <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200/60 dark:border-slate-700/60 p-5 mb-6">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">Portefeuille Treemap</h3>
             <label className="flex items-center gap-2 cursor-pointer select-none">
@@ -194,11 +210,11 @@ export default function OverzichtPage() {
 
         {/* Sector + Currency donuts */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 p-5">
+          <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200/60 dark:border-slate-700/60 p-5">
             <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-4">Sectoren</h3>
             <SectorDonut data={sectorData} />
           </div>
-          <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 p-5">
+          <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200/60 dark:border-slate-700/60 p-5">
             <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-4">Valuta</h3>
             <SectorDonut data={currData} />
           </div>
@@ -208,8 +224,8 @@ export default function OverzichtPage() {
       {/* --- POSITIES --- */}
       <div>
         <h2 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4">Posities</h2>
-        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 p-5">
-          <PositionsTable holdings={holdings} />
+        <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200/60 dark:border-slate-700/60 p-5">
+          <PositionsTable holdings={holdings} onAdviceUpdated={refresh} />
         </div>
       </div>
     </div>

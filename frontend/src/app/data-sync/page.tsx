@@ -26,7 +26,7 @@ function LiveRefreshCard() {
   }
 
   return (
-    <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 p-5">
+    <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200/60 dark:border-slate-700/60 p-5">
       <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-1">Live Refresh</h2>
       <p className="text-sm text-slate-500 dark:text-slate-400 mb-5">
         Herbereken portefeuille met actuele koersen en wisselkoersen
@@ -35,7 +35,7 @@ function LiveRefreshCard() {
       <button
         onClick={handleRefresh}
         disabled={loading}
-        className="inline-flex items-center justify-center gap-2.5 w-full sm:w-auto px-8 py-3 rounded-xl bg-[#1B3A5C] text-white text-sm font-semibold hover:bg-[#162f4a] disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
+        className="inline-flex items-center justify-center gap-2.5 w-full sm:w-auto px-8 py-3 rounded-md bg-[#1B3A5C] text-white text-sm font-semibold hover:bg-[#162f4a] disabled:opacity-60 disabled:cursor-not-allowed transition-colors"
       >
         {loading ? (
           <>
@@ -128,7 +128,7 @@ function SheetsImportCard() {
   }
 
   return (
-    <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 p-5">
+    <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200/60 dark:border-slate-700/60 p-5">
       <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-1">Google Sheets Import</h2>
       <p className="text-sm text-slate-500 dark:text-slate-400 mb-5">
         Importeer portefeuilledata vanuit Google Sheets nota&apos;s
@@ -167,7 +167,7 @@ function SheetsImportCard() {
       )}
 
       {selectedSheet && !tabsLoading && tabs.length > 0 && (
-        <div className="border border-slate-200/60 dark:border-slate-700/60 rounded-xl overflow-hidden">
+        <div className="border border-slate-200/60 dark:border-slate-700/60 rounded-md overflow-hidden">
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-slate-50 dark:bg-slate-700/50 border-b border-slate-200/60 dark:border-slate-700/60">
@@ -245,7 +245,7 @@ function SyncHistoryCard() {
   }, [load])
 
   return (
-    <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 p-5">
+    <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200/60 dark:border-slate-700/60 p-5">
       <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4">Sync Geschiedenis</h2>
 
       {loading ? (
@@ -261,7 +261,7 @@ function SyncHistoryCard() {
       ) : snapshots.length === 0 ? (
         <p className="text-sm text-slate-400 dark:text-slate-500">Geen snapshots gevonden.</p>
       ) : (
-        <div className="border border-slate-200/60 dark:border-slate-700/60 rounded-xl overflow-x-auto">
+        <div className="border border-slate-200/60 dark:border-slate-700/60 rounded-md overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="bg-slate-50 dark:bg-slate-700/50 border-b border-slate-200/60 dark:border-slate-700/60">

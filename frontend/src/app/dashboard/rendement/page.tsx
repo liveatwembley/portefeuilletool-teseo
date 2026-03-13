@@ -208,7 +208,7 @@ export default function RendementPage() {
 
       {/* Performance chart */}
       <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-3">Waardeontwikkeling</h2>
-      <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 p-5 hover:shadow-sm transition-shadow">
+      <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200/60 dark:border-slate-700/60 p-5 hover:shadow-sm transition-shadow">
         <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-4">
           Portefeuillewaarde over tijd
           {benchmarkKeys.length > 0 && (

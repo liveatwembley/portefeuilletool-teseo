@@ -144,7 +144,7 @@ function TransactionModal({
       <div className="absolute inset-0 bg-black/30 dark:bg-black/50 backdrop-blur-sm" onClick={onClose} />
 
       {/* Modal card */}
-      <div className="relative w-full max-w-lg bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 shadow-xl p-6 max-h-[90vh] overflow-y-auto">
+      <div className="relative w-full max-w-lg bg-white dark:bg-slate-800 rounded-lg border border-slate-200/60 dark:border-slate-700/60 shadow-xl p-6 max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-5">
           <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">Nieuwe transactie</h2>
           <button
@@ -375,7 +375,7 @@ export default function TransactiesPage() {
           <Skeleton className="h-8 w-48 rounded-lg" />
           <Skeleton className="h-10 w-40 rounded-lg" />
         </div>
-        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 p-5">
+        <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200/60 dark:border-slate-700/60 p-5">
           <TableSkeleton />
         </div>
       </div>
@@ -423,7 +423,7 @@ export default function TransactiesPage() {
       </div>
 
       {/* Table */}
-      <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 p-5">
+      <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200/60 dark:border-slate-700/60 p-5">
         {transactions.length === 0 ? (
           <div className="text-center py-16">
             <p className="text-slate-400 dark:text-slate-500 text-sm">Nog geen transacties gevonden.</p>

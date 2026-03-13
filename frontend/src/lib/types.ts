@@ -42,6 +42,7 @@ export interface PortfolioOverview {
   meta: PortfolioMeta | null
   holdings: EnrichedHolding[]
   fx_rates: Record<string, number>
+  treasury_eur: number
 }
 
 export interface Snapshot {

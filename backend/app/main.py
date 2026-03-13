@@ -7,7 +7,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.routers import portfolio, positions, transactions, market, sync, auth_router
+from app.routers import portfolio, positions, transactions, market, sync, auth_router, earnings
 
 app = FastAPI(
     title='Teseo Portefeuilletool API',
@@ -35,6 +35,7 @@ app.include_router(positions.router, prefix='/api/positions', tags=['positions']
 app.include_router(transactions.router, prefix='/api/transactions', tags=['transactions'])
 app.include_router(market.router, prefix='/api/market', tags=['market'])
 app.include_router(sync.router, prefix='/api/sync', tags=['sync'])
+app.include_router(earnings.router, prefix='/api/earnings', tags=['earnings'])
 
 
 @app.get('/api/health')

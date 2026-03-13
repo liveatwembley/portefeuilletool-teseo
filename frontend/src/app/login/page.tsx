@@ -29,21 +29,21 @@ export default function LoginPage() {
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center p-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <div className="w-16 h-16 rounded-2xl bg-[#1B3A5C] flex items-center justify-center mx-auto mb-4">
+          <div className="w-16 h-16 rounded-lg bg-[#1B3A5C] flex items-center justify-center mx-auto mb-4">
             <span className="text-white font-bold text-2xl">T</span>
           </div>
           <h1 className="text-2xl font-semibold text-slate-900 dark:text-slate-100">Teseo</h1>
           <p className="text-sm text-slate-400 dark:text-slate-500 mt-1">Bluebird Capital</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200/60 dark:border-slate-700/60 p-6 space-y-4">
           <div>
             <label className="block text-sm font-medium text-slate-600 dark:text-slate-400 mb-1.5">Gebruikersnaam</label>
             <input
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 px-4 py-2.5 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#1B3A5C]/20 dark:focus:ring-[#1B3A5C]/40 focus:border-[#1B3A5C] transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500"
+              className="w-full rounded-md border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 px-4 py-2.5 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#1B3A5C]/20 dark:focus:ring-[#1B3A5C]/40 focus:border-[#1B3A5C] transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500"
               autoFocus
             />
           </div>
@@ -53,18 +53,18 @@ export default function LoginPage() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 px-4 py-2.5 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#1B3A5C]/20 dark:focus:ring-[#1B3A5C]/40 focus:border-[#1B3A5C] transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500"
+              className="w-full rounded-md border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 px-4 py-2.5 text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-[#1B3A5C]/20 dark:focus:ring-[#1B3A5C]/40 focus:border-[#1B3A5C] transition-all placeholder:text-slate-400 dark:placeholder:text-slate-500"
             />
           </div>
 
           {error && (
-            <p className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 rounded-xl px-4 py-2">{error}</p>
+            <p className="text-sm text-red-600 dark:text-red-400 bg-red-50 dark:bg-red-900/30 rounded-md px-4 py-2">{error}</p>
           )}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-[#1B3A5C] text-white rounded-xl py-2.5 text-sm font-medium hover:bg-[#142d49] transition-colors disabled:opacity-50"
+            className="w-full bg-[#1B3A5C] text-white rounded-md py-2.5 text-sm font-medium hover:bg-[#142d49] transition-colors disabled:opacity-50"
           >
             {loading ? 'Inloggen...' : 'Inloggen'}
           </button>

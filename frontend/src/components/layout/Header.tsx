@@ -9,6 +9,7 @@ const NAV_ITEMS = [
   { label: 'X-Ray', href: '/dashboard/x-ray' },
   { label: 'Rendement', href: '/dashboard/rendement' },
   { label: 'Holdings', href: '/dashboard/holdings' },
+  { label: 'Earnings', href: '/earnings' },
   { label: 'Posities', href: '/posities' },
   { label: 'Transacties', href: '/transacties' },
   { label: 'Data Sync', href: '/data-sync' },

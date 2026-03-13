@@ -152,7 +152,7 @@ function CustomTooltipInner(
     : isDark ? 'text-red-400' : 'text-red-600'
 
   return (
-    <div className={`rounded-xl border shadow-xl px-4 py-3 text-sm min-w-[200px] ${
+    <div className={`rounded-lg border shadow-lg px-4 py-3 text-sm min-w-[200px] ${
       isDark ? 'bg-slate-800 border-slate-700' : 'bg-white border-slate-200'
     }`}>
       <p className={`font-semibold mb-2 ${isDark ? 'text-slate-100' : 'text-slate-900'}`}>{item.name}</p>

@@ -87,7 +87,7 @@ export default function HoldingsPage() {
     return (
       <div className="space-y-6">
         <Skeleton className="h-7 w-40 rounded-lg" />
-        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 p-5">
+        <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200/60 dark:border-slate-700/60 p-5">
           {Array.from({ length: 8 }).map((_, i) => (
             <Skeleton key={i} className="h-10 mb-2 rounded-lg" />
           ))}
@@ -141,7 +141,7 @@ export default function HoldingsPage() {
       <h1 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-6">Holdings</h1>
 
       <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-3">Fundamentele data per positie</h2>
-      <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 overflow-hidden hover:shadow-sm transition-shadow">
+      <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200/60 dark:border-slate-700/60 overflow-hidden hover:shadow-sm transition-shadow">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>

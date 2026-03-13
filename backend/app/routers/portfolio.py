@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends
+from pydantic import BaseModel
 
 from app.auth import get_current_user
 from app.dependencies import get_db
@@ -8,6 +9,38 @@ from core.calculations import enrich_all_holdings, calculate_portfolio_meta
 from core.utils import concentration_metrics
 
 router = APIRouter()
+
+
+# --- SETTINGS ---
+
+class SettingsBody(BaseModel):
+    treasury_eur: float = 0
+
+
+def _get_treasury_eur(db):
+    """Lees treasury_eur uit eq_settings, default 0."""
+    try:
+        result = db.table('eq_settings').select('*').eq('key', 'treasury_eur').limit(1).execute()
+        if result.data:
+            return float(result.data[0].get('value', 0))
+    except Exception:
+        pass
+    return 0
+
+
+@router.get('/settings')
+def get_settings(db=Depends(get_db), user=Depends(get_current_user)):
+    treasury_eur = _get_treasury_eur(db)
+    return {'treasury_eur': treasury_eur}
+
+
+@router.put('/settings')
+def update_settings(body: SettingsBody, db=Depends(get_db), user=Depends(get_current_user)):
+    db.table('eq_settings').upsert(
+        {'key': 'treasury_eur', 'value': str(body.treasury_eur)},
+        on_conflict='key'
+    ).execute()
+    return {'treasury_eur': body.treasury_eur}
 
 
 def _get_enriched_portfolio(db):
@@ -28,8 +61,9 @@ def _get_enriched_portfolio(db):
 def overview(db=Depends(get_db), user=Depends(get_current_user)):
     enriched, meta, fx_rates = _get_enriched_portfolio(db)
     if enriched is None:
-        return {'meta': None, 'holdings': [], 'fx_rates': {}}
-    return {'meta': meta, 'holdings': enriched, 'fx_rates': fx_rates}
+        return {'meta': None, 'holdings': [], 'fx_rates': {}, 'treasury_eur': 0}
+    treasury_eur = _get_treasury_eur(db)
+    return {'meta': meta, 'holdings': enriched, 'fx_rates': fx_rates, 'treasury_eur': treasury_eur}
 
 
 @router.get('/xray')

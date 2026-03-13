@@ -79,7 +79,7 @@ export default function PrincipesPage() {
         {PRINCIPLES.map((p) => (
           <div
             key={p.nr}
-            className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200/60 dark:border-slate-700/60 p-5"
+            className="bg-white dark:bg-slate-800 rounded-md border border-slate-200/60 dark:border-slate-700/60 p-5"
           >
             <div className="flex items-center gap-2.5 mb-2">
               <span className="inline-flex items-center justify-center w-6 h-6 rounded-md bg-[#E8B34A]/10 dark:bg-[#E8B34A]/15 text-[#E8B34A] text-xs font-bold shrink-0">

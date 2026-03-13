@@ -23,8 +23,8 @@ export function KpiCard({ label, value, delta, sublabel, sublabelClassName, hero
   return (
     <div
       className={[
-        'rounded-2xl border border-slate-200/60 dark:border-slate-700/60 bg-white dark:bg-slate-800 p-5',
-        hero ? 'col-span-2 sm:col-span-2 lg:col-span-2' : '',
+        'rounded-lg border border-slate-200/60 dark:border-slate-700/60 bg-white dark:bg-slate-800 p-5',
+        hero ? '' : '',
         pnlValue != null ? `border-l-[3px] ${borderAccent}` : '',
       ].filter(Boolean).join(' ')}
     >

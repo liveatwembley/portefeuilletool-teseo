@@ -33,7 +33,7 @@ export function SectorDonut({ data }: { data: DonutData[] }) {
             <Tooltip
               formatter={(value) => formatEuroCompact(Number(value))}
               contentStyle={{
-                borderRadius: '12px',
+                borderRadius: '8px',
                 border: isDark ? '1px solid #334155' : '1px solid #e2e8f0',
                 fontSize: '12px',
                 backgroundColor: isDark ? '#1e293b' : '#ffffff',

@@ -1,13 +1,79 @@
 'use client'
+import { useState } from 'react'
 import type { EnrichedHolding } from '@/lib/types'
 import { formatEuro, formatPct, formatNumber, formatLocalPrice, pnlColor } from '@/lib/formatters'
 import { ADVICE_COLORS, QARP_TICKERS } from '@/lib/colors'
+import { api } from '@/lib/api'
 
-export function PositionsTable({ holdings }: { holdings: EnrichedHolding[] }) {
+const ADVICE_OPTIONS = ['Kopen', 'Koopman', 'Houden', 'Verkopen']
+
+function AdviceCell({ holding, onUpdated }: { holding: EnrichedHolding; onUpdated?: () => void }) {
+  const [editing, setEditing] = useState(false)
+  const [saving, setSaving] = useState(false)
+
+  const handleChange = async (value: string) => {
+    setSaving(true)
+    try {
+      await api.put(`/api/positions/${encodeURIComponent(holding.ticker)}/advice`, {
+        advice: value,
+      })
+      setEditing(false)
+      onUpdated?.()
+    } catch {
+      // stille fout
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  if (editing) {
+    return (
+      <select
+        autoFocus
+        disabled={saving}
+        defaultValue={holding.advice || ''}
+        onChange={(e) => handleChange(e.target.value)}
+        onBlur={() => setEditing(false)}
+        className="text-xs rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 px-1.5 py-1 focus:outline-none focus:ring-1 focus:ring-[#1B3A5C]"
+      >
+        <option value="">—</option>
+        {ADVICE_OPTIONS.map((opt) => (
+          <option key={opt} value={opt}>{opt}</option>
+        ))}
+      </select>
+    )
+  }
+
+  const adviceLower = (holding.advice || '').toLowerCase()
+  const color = ADVICE_COLORS[adviceLower] || '#6b7280'
+
+  return (
+    <button
+      onClick={() => setEditing(true)}
+      className="group/advice inline-flex items-center gap-1"
+      title="Klik om te bewerken"
+    >
+      {holding.advice ? (
+        <span
+          className="inline-block px-2 py-0.5 rounded text-xs font-medium text-white cursor-pointer hover:opacity-80 transition-opacity"
+          style={{ backgroundColor: color }}
+        >
+          {holding.advice}
+        </span>
+      ) : (
+        <span className="text-xs text-slate-300 dark:text-slate-600 group-hover/advice:text-slate-400 dark:group-hover/advice:text-slate-500 transition-colors">
+          + advies
+        </span>
+      )}
+    </button>
+  )
+}
+
+export function PositionsTable({ holdings, onAdviceUpdated }: { holdings: EnrichedHolding[]; onAdviceUpdated?: () => void }) {
   const sorted = [...holdings].sort((a, b) => (b.value || 0) - (a.value || 0))
 
   return (
-    <div className="relative overflow-x-auto rounded-lg">
+    <div className="relative overflow-x-auto rounded-md">
       <table className="w-full text-sm">
         <thead>
           <tr className="border-b border-slate-200 dark:border-slate-700">
@@ -67,14 +133,7 @@ export function PositionsTable({ holdings }: { holdings: EnrichedHolding[] }) {
               </td>
               <td className="py-3 px-4 text-right text-slate-700 dark:text-slate-300">{(h.weight || 0).toFixed(1)}%</td>
               <td className="py-3 px-4 text-center">
-                {h.advice && (
-                  <span
-                    className="inline-block px-2 py-0.5 rounded-full text-xs font-medium text-white"
-                    style={{ backgroundColor: ADVICE_COLORS[h.advice.toLowerCase()] || '#6b7280' }}
-                  >
-                    {h.advice}
-                  </span>
-                )}
+                <AdviceCell holding={h} onUpdated={onAdviceUpdated} />
               </td>
             </tr>
           ))}

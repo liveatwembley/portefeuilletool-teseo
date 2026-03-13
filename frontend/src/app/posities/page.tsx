@@ -164,7 +164,7 @@ function FundamentalsGrid({
   return (
     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
       {items.map((item) => (
-        <div key={item.label} className="rounded-xl bg-slate-50 dark:bg-slate-700/50 px-3 py-2.5">
+        <div key={item.label} className="rounded-md bg-slate-50 dark:bg-slate-700/50 px-3 py-2.5">
           <p className="text-[11px] text-slate-400 dark:text-slate-500 mb-0.5">{item.label}</p>
           <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">{item.value ?? '—'}</p>
         </div>
@@ -573,19 +573,19 @@ function DetailPanel({
 
       {/* --- POSITIE SAMENVATTING --- */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="rounded-xl bg-slate-50 dark:bg-slate-700/50 px-3 py-2.5">
+        <div className="rounded-md bg-slate-50 dark:bg-slate-700/50 px-3 py-2.5">
           <p className="text-[11px] text-slate-400 dark:text-slate-500 mb-0.5">Stuks</p>
           <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">{formatNumber(holding.shares)}</p>
         </div>
-        <div className="rounded-xl bg-slate-50 dark:bg-slate-700/50 px-3 py-2.5">
+        <div className="rounded-md bg-slate-50 dark:bg-slate-700/50 px-3 py-2.5">
           <p className="text-[11px] text-slate-400 dark:text-slate-500 mb-0.5">Waarde</p>
           <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">{formatEuro(holding.value)}</p>
         </div>
-        <div className="rounded-xl bg-slate-50 dark:bg-slate-700/50 px-3 py-2.5">
+        <div className="rounded-md bg-slate-50 dark:bg-slate-700/50 px-3 py-2.5">
           <p className="text-[11px] text-slate-400 dark:text-slate-500 mb-0.5">Gem. Kostprijs</p>
           <p className="text-sm font-semibold text-slate-800 dark:text-slate-200">{formatEuro(holding.avg_cost_eur)}</p>
         </div>
-        <div className={`rounded-xl px-3 py-2.5 ${pnlBgColor(holding.pnl_nominal)}`}>
+        <div className={`rounded-md px-3 py-2.5 ${pnlBgColor(holding.pnl_nominal)}`}>
           <p className="text-[11px] text-slate-400 dark:text-slate-500 mb-0.5">P&L</p>
           <p className={`text-sm font-semibold ${pnlColor(holding.pnl_nominal)}`}>
             {formatEuro(holding.pnl_nominal)} ({formatPct(holding.pnl_pct)})
@@ -594,20 +594,20 @@ function DetailPanel({
       </div>
 
       {/* --- KOERSGRAFIEK --- */}
-      <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 p-5">
+      <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200/60 dark:border-slate-700/60 p-5">
         <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-3">Koersverloop</h3>
         <PriceChart ticker={ticker} />
       </div>
 
       {/* --- FUNDAMENTALS --- */}
-      <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 p-5">
+      <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200/60 dark:border-slate-700/60 p-5">
         <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-3">Fundamentele Data</h3>
         <FundamentalsGrid fundamentals={fundamentals} currency={holding.currency} />
       </div>
 
       {/* --- STYLE BOX + ADVIES --- */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 p-5">
+        <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200/60 dark:border-slate-700/60 p-5">
           <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-3">Morningstar Style Box</h3>
           {style.row != null && style.col != null ? (
             <StyleBox row={style.row} col={style.col} />
@@ -615,7 +615,7 @@ function DetailPanel({
             <p className="text-sm text-slate-400 dark:text-slate-500">Geen stijlclassificatie beschikbaar.</p>
           )}
         </div>
-        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 p-5">
+        <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200/60 dark:border-slate-700/60 p-5">
           <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-3">Advies</h3>
           <AdviceSection
             ticker={ticker}
@@ -630,7 +630,7 @@ function DetailPanel({
       </div>
 
       {/* --- TRANSACTIES --- */}
-      <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 p-5">
+      <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200/60 dark:border-slate-700/60 p-5">
         <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-3">Transactiehistorie</h3>
         <TransactionTable transactions={transactions} />
       </div>
@@ -726,7 +726,7 @@ export default function PositiesPage() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         {/* --- POSITIELIJST --- */}
         <div className="md:col-span-1">
-          <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 overflow-hidden">
+          <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200/60 dark:border-slate-700/60 overflow-hidden">
             {/* Search */}
             <div className="p-3 border-b border-slate-100 dark:border-slate-700/30">
               <div className="relative">
@@ -784,7 +784,7 @@ export default function PositiesPage() {
               onAdviceUpdated={refresh}
             />
           ) : (
-            <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 p-5 flex items-center justify-center min-h-[400px]">
+            <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200/60 dark:border-slate-700/60 p-5 flex items-center justify-center min-h-[400px]">
               <div className="text-center">
                 <svg
                   className="w-12 h-12 text-slate-200 dark:text-slate-600 mx-auto mb-3"

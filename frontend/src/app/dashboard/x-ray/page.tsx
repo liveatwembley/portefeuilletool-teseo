@@ -215,7 +215,7 @@ export default function XRayPage() {
 
       {/* Concentration warnings */}
       {(concentration.n_positions > 30 || hhi > 1500 || concentration.top5_weight > 60) && (
-        <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/40 rounded-xl px-4 py-3 text-sm text-amber-800 dark:text-amber-300 space-y-1">
+        <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/40 rounded-md px-4 py-3 text-sm text-amber-800 dark:text-amber-300 space-y-1">
           {concentration.n_positions > 30 && (
             <p>Let op: meer dan 30 posities. Principe 8 adviseert max 30 voor 95% van het kapitaal.</p>
           )}
@@ -231,11 +231,11 @@ export default function XRayPage() {
       {/* Sector + Geografie */}
       <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-3">Verdeling per categorie</h2>
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 p-5 hover:shadow-sm transition-shadow">
+        <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200/60 dark:border-slate-700/60 p-5 hover:shadow-sm transition-shadow">
           <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-4">Sectoren</h3>
           <HorizontalBarChart data={sectors} />
         </div>
-        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 p-5 hover:shadow-sm transition-shadow">
+        <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200/60 dark:border-slate-700/60 p-5 hover:shadow-sm transition-shadow">
           <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-4">Geografie</h3>
           <HorizontalBarChart data={geo} colorIndex={3} />
         </div>
@@ -243,11 +243,11 @@ export default function XRayPage() {
 
       {/* Valuta + Advies */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 p-5 hover:shadow-sm transition-shadow">
+        <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200/60 dark:border-slate-700/60 p-5 hover:shadow-sm transition-shadow">
           <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-4">Valuta</h3>
           <HorizontalBarChart data={currencies} colorIndex={6} />
         </div>
-        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200/60 dark:border-slate-700/60 p-5 hover:shadow-sm transition-shadow">
+        <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200/60 dark:border-slate-700/60 p-5 hover:shadow-sm transition-shadow">
           <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-4">Adviesverdeling</h3>
           <AdviesDonut data={advice} />
         </div>
