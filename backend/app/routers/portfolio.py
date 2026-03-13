@@ -63,6 +63,15 @@ def overview(db=Depends(get_db), user=Depends(get_current_user)):
     if enriched is None:
         return {'meta': None, 'holdings': [], 'fx_rates': {}, 'treasury_eur': 0}
     treasury_eur = _get_treasury_eur(db)
+
+    # Herbereken gewichten en cash_pct inclusief treasury
+    if treasury_eur > 0 and meta:
+        total_with_treasury = meta['portfolio_total'] + treasury_eur
+        if total_with_treasury > 0:
+            for h in enriched:
+                h['weight'] = h['value'] / total_with_treasury * 100
+            meta['cash_pct'] = (meta['cash'] + treasury_eur) / total_with_treasury * 100
+
     return {'meta': meta, 'holdings': enriched, 'fx_rates': fx_rates, 'treasury_eur': treasury_eur}
 
 
@@ -71,6 +80,14 @@ def xray(db=Depends(get_db), user=Depends(get_current_user)):
     enriched, meta, fx_rates = _get_enriched_portfolio(db)
     if enriched is None:
         return {'concentration': {}, 'sectors': [], 'geo': [], 'currencies': [], 'advice': []}
+
+    # Herbereken gewichten inclusief treasury
+    treasury_eur = _get_treasury_eur(db)
+    if treasury_eur > 0 and meta:
+        total_with_treasury = meta['portfolio_total'] + treasury_eur
+        if total_with_treasury > 0:
+            for h in enriched:
+                h['weight'] = h['value'] / total_with_treasury * 100
 
     weights = [h.get('weight', 0) for h in enriched]
     conc = concentration_metrics(weights)
@@ -147,6 +164,14 @@ def holdings(db=Depends(get_db), user=Depends(get_current_user)):
     enriched, meta, fx_rates = _get_enriched_portfolio(db)
     if enriched is None:
         return {'holdings': [], 'fundamentals': {}}
+
+    # Herbereken gewichten inclusief treasury
+    treasury_eur = _get_treasury_eur(db)
+    if treasury_eur > 0 and meta:
+        total_with_treasury = meta['portfolio_total'] + treasury_eur
+        if total_with_treasury > 0:
+            for h in enriched:
+                h['weight'] = h['value'] / total_with_treasury * 100
 
     tickers = [h['ticker'] for h in enriched]
     fund_data = get_fundamental_data_batch(tuple(tickers))

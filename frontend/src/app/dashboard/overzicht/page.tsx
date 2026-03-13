@@ -79,8 +79,10 @@ export default function OverzichtPage() {
   const winners = holdings.filter(h => (h.pnl_pct || 0) > 0).length
   const losers = holdings.filter(h => (h.pnl_pct || 0) < 0).length
 
-  // Cash sublabel with Buffett Indicator context
-  const cashPct = meta.cash_pct
+  // Cash sublabel with Buffett Indicator context (treasury meegerekend)
+  const totalPortfolio = meta.portfolio_total + treasury_eur
+  const totalCash = meta.cash + treasury_eur
+  const cashPct = totalPortfolio > 0 ? (totalCash / totalPortfolio) * 100 : 0
   const cashSublabel = cashPct > 10
     ? `${cashPct.toFixed(1)}% — overweeg te investeren`
     : cashPct > 7.5
@@ -148,14 +150,14 @@ export default function OverzichtPage() {
         <KpiCard
           label="Cash (IBKR)"
           value={formatEuro(meta.cash)}
-          sublabel={cashSublabel}
-          sublabelClassName={cashSublabelColor}
+          sublabel={`${totalPortfolio > 0 ? (meta.cash / totalPortfolio * 100).toFixed(1) : '0.0'}% van portefeuille`}
         />
         <TreasuryCard value={treasury_eur} onSaved={refresh} />
         <KpiCard
           label="Totaal Liquide Middelen"
-          value={formatEuro(meta.cash + treasury_eur)}
-          sublabel={`${((meta.cash + treasury_eur) / (meta.portfolio_total + treasury_eur) * 100).toFixed(1)}% van portefeuille`}
+          value={formatEuro(totalCash)}
+          sublabel={cashSublabel}
+          sublabelClassName={cashSublabelColor}
         />
       </div>
 
