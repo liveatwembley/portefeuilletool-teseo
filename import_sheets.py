@@ -45,10 +45,16 @@ def clean_name(name):
 
 
 def parse_date_from_tab(tab_name):
-    """Parse date from tab name like '24-01-2026', '6-01-2024', '14-02-2026'."""
+    """Parse date from tab name like '24-01-2026', '6-01-2024', '2026-03-14 - tekst'."""
+    # Format: DD-MM-YYYY (aan het begin)
     match = re.match(r'(\d{1,2})-(\d{1,2})-(\d{4})', tab_name)
     if match:
         day, month, year = match.groups()
+        return f"{year}-{month.zfill(2)}-{day.zfill(2)}"
+    # Format: YYYY-MM-DD (aan het begin, eventueel gevolgd door tekst)
+    match = re.match(r'(\d{4})-(\d{1,2})-(\d{1,2})', tab_name)
+    if match:
+        year, month, day = match.groups()
         return f"{year}-{month.zfill(2)}-{day.zfill(2)}"
     return None
 
