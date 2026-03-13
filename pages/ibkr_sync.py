@@ -39,66 +39,95 @@ def render(supabase):
     with tab_sheets:
         st.markdown("### Google Sheets Import")
         st.markdown("""
-Importeer het **nieuwste portefeuilledocument** vanuit Google Sheets.
-De tool zoekt automatisch in alle geconfigureerde spreadsheets naar het
-recentste tabblad met een geldige datum.
+Scant automatisch **alle spreadsheets** die gedeeld zijn met het service account.
+Selecteer een spreadsheet, kies een tab, en importeer.
 
 > **Service account:** `robot-lezer@stock-compare-301906.iam.gserviceaccount.com`
 > Deel nieuwe spreadsheets met dit account (Viewer-toegang volstaat).
 """)
 
-        col_scan, col_import = st.columns(2)
+        # --- STAP 1: Spreadsheets ophalen ---
+        if st.button("Scan Spreadsheets", type="secondary", use_container_width=True):
+            with st.spinner("Spreadsheets zoeken..."):
+                try:
+                    from import_sheets import list_spreadsheets
+                    sheets = list_spreadsheets()
+                    if sheets:
+                        st.session_state['available_sheets'] = sheets
+                        st.session_state.pop('sheets_tabs', None)
+                        st.session_state.pop('selected_sheet_idx', None)
+                        st.success(f"**{len(sheets)} spreadsheet(s)** gevonden")
+                    else:
+                        st.warning("Geen spreadsheets gevonden. Is er een document gedeeld met het service account?")
+                except Exception as e:
+                    st.error(f"Scan mislukt: {str(e)}")
 
-        with col_scan:
-            if st.button("🔍 Scan Spreadsheets", type="secondary", use_container_width=True):
-                with st.spinner("Spreadsheets scannen..."):
+        # --- STAP 2: Spreadsheet selecteren ---
+        if 'available_sheets' in st.session_state and st.session_state['available_sheets']:
+            sheets = st.session_state['available_sheets']
+            sheet_names = [s['name'] for s in sheets]
+
+            selected_idx = st.selectbox(
+                "Selecteer spreadsheet",
+                range(len(sheet_names)),
+                format_func=lambda i: sheet_names[i],
+                key='selected_sheet_idx',
+            )
+
+            if st.button("Tabs laden", type="secondary", use_container_width=True):
+                with st.spinner("Tabs scannen..."):
                     try:
                         from import_sheets import list_available_tabs
-                        tabs = list_available_tabs()
+                        selected_sheet = sheets[selected_idx]
+                        tabs = list_available_tabs(sheet_id=selected_sheet['id'])
                         if tabs:
                             st.session_state['sheets_tabs'] = tabs
-                            st.success(f"**{len(tabs)} datum-tabs** gevonden")
+                            st.success(f"**{len(tabs)} datum-tabs** gevonden in {selected_sheet['name']}")
                         else:
-                            st.warning("Geen datum-tabs gevonden. Is het document gedeeld met het service account?")
+                            st.warning("Geen datum-tabs gevonden in dit spreadsheet.")
                     except Exception as e:
-                        st.error(f"Scan mislukt: {str(e)}")
+                        st.error(f"Tabs laden mislukt: {str(e)}")
 
-        # Toon gevonden tabs
+        # --- STAP 3: Tab selecteren en importeren ---
         if 'sheets_tabs' in st.session_state and st.session_state['sheets_tabs']:
             tabs_found = st.session_state['sheets_tabs']
-            st.markdown("**Beschikbare tabs (nieuwste eerst):**")
-            for i, t in enumerate(tabs_found[:10]):
-                marker = "🟢" if i == 0 else "⚪"
-                st.markdown(f"  {marker} **{t['date']}** — {t['tab_name']} ({t['spreadsheet']})")
 
-            with col_import:
-                if st.button("📥 Importeer Nieuwste", type="primary", use_container_width=True):
-                    with st.spinner("Nieuwste tab importeren..."):
-                        try:
-                            from import_sheets import import_latest_tab
-                            result = import_latest_tab(supabase)
-                            if result['status'] == 'success':
-                                st.success(
-                                    f"**Import succesvol!**\n\n"
-                                    f"- 📅 Snapshot: **{result['snapshot_date']}**\n"
-                                    f"- 📄 Tab: **{result['tab_name']}** ({result.get('spreadsheet', '')})\n"
-                                    f"- 📊 Posities: **{result['holdings_count']}**\n"
-                                    f"- 💰 Totale waarde: **€{result['total_value']:,.0f}**\n"
-                                    f"- 💵 Cash: **€{result['cash_eur']:,.0f}**"
-                                )
-                                if result.get('warnings'):
-                                    for w in result['warnings']:
-                                        st.warning(f"⚠️ {w}")
-                            else:
-                                st.error(result.get('message', 'Import mislukt'))
-                        except Exception as e:
-                            st.error(f"Import fout: {str(e)}")
+            tab_labels = [f"{t['date']} — {t['tab_name']}" for t in tabs_found]
+            selected_tab_idx = st.selectbox(
+                "Selecteer tab om te importeren",
+                range(len(tab_labels)),
+                format_func=lambda i: tab_labels[i],
+                key='selected_tab_idx',
+            )
+
+            if st.button("Importeer geselecteerde tab", type="primary", use_container_width=True):
+                with st.spinner("Tab importeren..."):
+                    try:
+                        from import_sheets import import_specific_tab
+                        selected_tab = tabs_found[selected_tab_idx]
+                        result = import_specific_tab(supabase, selected_tab)
+                        if result['status'] == 'success':
+                            st.success(
+                                f"**Import succesvol!**\n\n"
+                                f"- Snapshot: **{result['snapshot_date']}**\n"
+                                f"- Tab: **{result['tab_name']}** ({result.get('spreadsheet', '')})\n"
+                                f"- Posities: **{result['holdings_count']}**\n"
+                                f"- Totale waarde: **{result['total_value']:,.0f}**\n"
+                                f"- Cash: **{result['cash_eur']:,.0f}**"
+                            )
+                            if result.get('warnings'):
+                                for w in result['warnings']:
+                                    st.warning(w)
+                        else:
+                            st.error(result.get('message', 'Import mislukt'))
+                    except Exception as e:
+                        st.error(f"Import fout: {str(e)}")
 
         st.markdown("---")
         st.markdown("""
 **Hoe werkt het?**
-1. De tool scant alle geconfigureerde Google Spreadsheets
-2. Zoekt tabs met een datum-formaat als naam (bv. `14-02-2026`)
+1. Scant alle Google Spreadsheets gedeeld met het service account
+2. Selecteer een spreadsheet en een tab met een datum
 3. Importeert posities, cash, FX-koersen en advies uit het tabblad
 4. Na import draai je een **Live Refresh** om de koersen te actualiseren
 """)

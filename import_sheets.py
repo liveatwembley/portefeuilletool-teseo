@@ -23,14 +23,6 @@ logger = logging.getLogger(__name__)
 
 # ─── CONFIG ──────────────────────────────────────────────────
 
-# Alle spreadsheets met portefeuillenota's
-SPREADSHEET_IDS = [
-    '13mq-BCUlu6Aw0SehezOaT9kzcY-UL4y796L5u6K484I',   # Origineel: "portefeuillenota - Initials B.B."
-    '1Bx8QDlNU-uHLgWeRBI64LOQWUzBZPVXjdPmPrleQ0HY',   # Nieuw: "After the gold rush"
-]
-# Legacy alias voor backward compatibility
-SPREADSHEET_ID = SPREADSHEET_IDS[0]
-
 GOOGLE_CREDENTIALS_JSON = os.environ.get('GOOGLE_CREDENTIALS', '')
 
 # Ticker mapping uit centrale config (single source of truth)
@@ -86,9 +78,29 @@ def _get_gspread_client():
 
     creds = Credentials.from_service_account_info(
         creds_dict,
-        scopes=['https://www.googleapis.com/auth/spreadsheets.readonly']
+        scopes=[
+            'https://www.googleapis.com/auth/spreadsheets.readonly',
+            'https://www.googleapis.com/auth/drive.readonly',
+        ]
     )
     return gspread.authorize(creds)
+
+
+def list_spreadsheets():
+    """
+    Scan alle spreadsheets die gedeeld zijn met het service account.
+
+    Returns: list van dicts met spreadsheet info, gesorteerd op naam.
+    """
+    gc = _get_gspread_client()
+    sheets = []
+    for s in gc.list_spreadsheet_files():
+        sheets.append({
+            'id': s['id'],
+            'name': s['name'],
+        })
+    sheets.sort(key=lambda x: x['name'])
+    return sheets
 
 
 def _ensure_position_ids(supabase):
@@ -330,18 +342,26 @@ def _import_single_tab(supabase, ws, snapshot_date, position_ids):
 
 # ─── APP-CALLABLE FUNCTIONS ─────────────────────────────────
 
-def list_available_tabs():
+def list_available_tabs(sheet_id=None):
     """
-    Scan alle spreadsheets en retourneer lijst van beschikbare datum-tabs.
+    Scan spreadsheet(s) en retourneer lijst van beschikbare datum-tabs.
+
+    Args:
+        sheet_id: specifiek spreadsheet ID om te scannen. Als None, scan alle.
 
     Returns: list van dicts met tab info, gesorteerd op datum (nieuwste eerst).
     """
     gc = _get_gspread_client()
     tabs = []
 
-    for sheet_id in SPREADSHEET_IDS:
+    if sheet_id:
+        sheet_ids = [sheet_id]
+    else:
+        sheet_ids = [s['id'] for s in gc.list_spreadsheet_files()]
+
+    for sid in sheet_ids:
         try:
-            spreadsheet = gc.open_by_key(sheet_id)
+            spreadsheet = gc.open_by_key(sid)
             for ws in spreadsheet.worksheets():
                 parsed_date = parse_date_from_tab(ws.title)
                 if parsed_date:
@@ -351,22 +371,14 @@ def list_available_tabs():
                         'tab_name': ws.title,
                         'date': clamped,
                         'spreadsheet': spreadsheet.title,
-                        'sheet_id': sheet_id,
+                        'sheet_id': sid,
                     })
         except Exception as e:
-            logger.warning("Kan spreadsheet %s niet openen: %s", sheet_id, e)
+            logger.warning("Kan spreadsheet %s niet openen: %s", sid, e)
 
-    # Sorteer op datum, nieuwste eerst; bij duplicaat wint de laatste spreadsheet
+    # Sorteer op datum, nieuwste eerst
     tabs.sort(key=lambda x: x['date'], reverse=True)
-
-    # Dedup: alleen de nieuwste per datum
-    seen = set()
-    unique = []
-    for t in tabs:
-        if t['date'] not in seen:
-            seen.add(t['date'])
-            unique.append(t)
-    return unique
+    return tabs
 
 
 def import_latest_tab(supabase):
@@ -414,42 +426,19 @@ def main():
 
     print("=== Teseo Portefeuilletool - Google Sheets Import ===\n")
 
-    gc = _get_gspread_client()
     supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-    # Collect date tabs
-    date_tabs = []
-    seen_dates = set()
-
-    for sheet_id in SPREADSHEET_IDS:
-        try:
-            spreadsheet = gc.open_by_key(sheet_id)
-            print(f"\nSpreadsheet geopend: {spreadsheet.title}")
-            for ws in spreadsheet.worksheets():
-                parsed_date = parse_date_from_tab(ws.title)
-                if parsed_date:
-                    clamped_date = clamp_future_date(parsed_date)
-                    if clamped_date not in seen_dates:
-                        date_tabs.append((ws, clamped_date))
-                        seen_dates.add(clamped_date)
-                    else:
-                        date_tabs = [(w, d) for w, d in date_tabs if d != clamped_date]
-                        date_tabs.append((ws, clamped_date))
-                        print(f"  ⚠️ Duplicaat {clamped_date}: nieuwste versie")
-        except Exception as e:
-            print(f"  ⚠️ Kan spreadsheet {sheet_id} niet openen: {e}")
-            continue
-
-    date_tabs.sort(key=lambda x: x[1])
-    print(f"\nTotaal gevonden datum-tabs: {len(date_tabs)}")
+    tabs = list_available_tabs()
+    print(f"Totaal gevonden datum-tabs: {len(tabs)}")
 
     position_ids = _ensure_position_ids(supabase)
     for name, pid in position_ids.items():
         print(f"  {name} → {pid[:8]}...")
 
-    for ws, snapshot_date in date_tabs:
-        print(f"\n--- Importeer {ws.title} ({snapshot_date}) ---")
-        result = _import_single_tab(supabase, ws, snapshot_date, position_ids)
+    # Importeer van oud naar nieuw
+    for tab in reversed(tabs):
+        print(f"\n--- Importeer {tab['tab_name']} ({tab['date']}) [{tab['spreadsheet']}] ---")
+        result = _import_single_tab(supabase, tab['worksheet'], tab['date'], position_ids)
         if result['status'] == 'success':
             print(f"  {result['holdings_count']} posities, total={result['total_value']:.0f}")
         else:
