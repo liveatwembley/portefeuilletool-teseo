@@ -35,34 +35,30 @@ def get_current_prices(tickers):
         tickers = tuple(tickers)
     tickers = list(tickers)
     try:
-        data = yf.download(tickers, period='2d', group_by='ticker', progress=False, threads=True)
+        data = yf.download(tickers, period='2d', progress=False, threads=True)
         prices = {}
-        if len(tickers) == 1:
-            ticker = tickers[0]
-            if not data.empty:
-                raw_price = float(data['Close'].iloc[-1])
-                raw_prev = float(data['Close'].iloc[0]) if len(data) > 1 else raw_price
+        if data.empty:
+            return prices
+        for ticker in tickers:
+            try:
+                close_col = ('Close', ticker) if ('Close', ticker) in data.columns else None
+                vol_col = ('Volume', ticker) if ('Volume', ticker) in data.columns else None
+                if close_col is None:
+                    continue
+                close_series = data[close_col].dropna()
+                if close_series.empty:
+                    continue
+                raw_price = float(close_series.iloc[-1])
+                raw_prev = float(close_series.iloc[0]) if len(close_series) > 1 else raw_price
+                volume = int(data[vol_col].iloc[-1]) if vol_col and not pd.isna(data[vol_col].iloc[-1]) else 0
                 prices[ticker] = {
                     'price': _adjust_pence(ticker, raw_price),
                     'prev_close': _adjust_pence(ticker, raw_prev),
-                    'volume': int(data['Volume'].iloc[-1]) if 'Volume' in data else 0,
+                    'volume': volume,
                 }
-        else:
-            for ticker in tickers:
-                try:
-                    if ticker in data.columns.get_level_values(0):
-                        ticker_data = data[ticker]
-                        if not ticker_data.empty and not pd.isna(ticker_data['Close'].iloc[-1]):
-                            raw_price = float(ticker_data['Close'].iloc[-1])
-                            raw_prev = float(ticker_data['Close'].iloc[0]) if len(ticker_data) > 1 else raw_price
-                            prices[ticker] = {
-                                'price': _adjust_pence(ticker, raw_price),
-                                'prev_close': _adjust_pence(ticker, raw_prev),
-                                'volume': int(ticker_data['Volume'].iloc[-1]) if 'Volume' in ticker_data else 0,
-                            }
-                except Exception as e:
-                    logger.warning("Koers ophalen mislukt voor %s: %s", ticker, e)
-                    continue
+            except Exception as e:
+                logger.warning("Koers ophalen mislukt voor %s: %s", ticker, e)
+                continue
         return prices
     except Exception as e:
         logger.error("Batch koersen ophalen mislukt: %s", e)
@@ -153,12 +149,10 @@ def get_live_fx_rates():
                 for pair_name in missing:
                     try:
                         yf_ticker = yf_map.get(pair_name)
-                        if yf_ticker:
-                            if len(yf_tickers) == 1:
-                                rate = float(data['Close'].dropna().iloc[-1])
-                            else:
-                                rate = float(data[yf_ticker]['Close'].dropna().iloc[-1])
-                            rates[pair_name] = rate
+                        if yf_ticker and ('Close', yf_ticker) in data.columns:
+                            close_series = data[('Close', yf_ticker)].dropna()
+                            if not close_series.empty:
+                                rates[pair_name] = float(close_series.iloc[-1])
                     except Exception as e:
                         logger.warning("yfinance FX fallback mislukt voor %s: %s", pair_name, e)
         except Exception as e:

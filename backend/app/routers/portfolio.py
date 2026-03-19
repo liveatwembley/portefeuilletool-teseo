@@ -1,5 +1,8 @@
-from fastapi import APIRouter, Depends
+import logging
+from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
+
+logger = logging.getLogger(__name__)
 
 from app.auth import get_current_user
 from app.dependencies import get_db
@@ -59,7 +62,11 @@ def _get_enriched_portfolio(db):
 
 @router.get('/overview')
 def overview(db=Depends(get_db), user=Depends(get_current_user)):
-    enriched, meta, fx_rates = _get_enriched_portfolio(db)
+    try:
+        enriched, meta, fx_rates = _get_enriched_portfolio(db)
+    except Exception as e:
+        logger.error("Portfolio overview fout: %s", e)
+        raise HTTPException(status_code=500, detail=f"Fout bij laden portfolio: {e}")
     if enriched is None:
         return {'meta': None, 'holdings': [], 'fx_rates': {}, 'treasury_eur': 0}
     treasury_eur = _get_treasury_eur(db)
@@ -77,7 +84,11 @@ def overview(db=Depends(get_db), user=Depends(get_current_user)):
 
 @router.get('/xray')
 def xray(db=Depends(get_db), user=Depends(get_current_user)):
-    enriched, meta, fx_rates = _get_enriched_portfolio(db)
+    try:
+        enriched, meta, fx_rates = _get_enriched_portfolio(db)
+    except Exception as e:
+        logger.error("Portfolio xray fout: %s", e)
+        raise HTTPException(status_code=500, detail=f"Fout bij laden X-Ray: {e}")
     if enriched is None:
         return {'concentration': {}, 'sectors': [], 'geo': [], 'currencies': [], 'advice': []}
 
@@ -145,8 +156,16 @@ def xray(db=Depends(get_db), user=Depends(get_current_user)):
 
 @router.get('/performance')
 def performance(db=Depends(get_db), user=Depends(get_current_user)):
-    snapshots = get_all_snapshots(db)
-    benchmarks_raw = get_benchmark_history('1y')
+    try:
+        snapshots = get_all_snapshots(db)
+    except Exception as e:
+        logger.error("Snapshots ophalen mislukt: %s", e)
+        snapshots = []
+    try:
+        benchmarks_raw = get_benchmark_history('1y')
+    except Exception as e:
+        logger.error("Benchmark data ophalen mislukt: %s", e)
+        benchmarks_raw = {}
 
     # Converteer DataFrames naar serializable dicts
     benchmarks = {}
@@ -161,7 +180,11 @@ def performance(db=Depends(get_db), user=Depends(get_current_user)):
 
 @router.get('/holdings')
 def holdings(db=Depends(get_db), user=Depends(get_current_user)):
-    enriched, meta, fx_rates = _get_enriched_portfolio(db)
+    try:
+        enriched, meta, fx_rates = _get_enriched_portfolio(db)
+    except Exception as e:
+        logger.error("Holdings ophalen mislukt: %s", e)
+        raise HTTPException(status_code=500, detail=f"Fout bij laden holdings: {e}")
     if enriched is None:
         return {'holdings': [], 'fundamentals': {}}
 

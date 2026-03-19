@@ -30,7 +30,11 @@ def list_sheets(user=Depends(get_current_user)):
 @router.get('/sheets/{sheet_id}/tabs')
 def list_tabs(sheet_id: str, user=Depends(get_current_user)):
     from core.import_sheets import list_available_tabs
-    tabs = list_available_tabs(sheet_id=sheet_id)
+    try:
+        tabs = list_available_tabs(sheet_id=sheet_id)
+    except Exception as e:
+        logger.error("Fout bij laden tabs voor sheet %s: %s", sheet_id, e)
+        raise HTTPException(status_code=500, detail=f"Kan tabs niet laden: {str(e)}")
     # Verwijder worksheet object (niet serializable)
     return [
         {
