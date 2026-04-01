@@ -82,7 +82,7 @@ def test_get_currency_known():
     assert get_currency('ASML.AS') == 'EUR'
     assert get_currency('GAW.L') == 'GBP'
     assert get_currency('NOVO-B.CO') == 'DKK'
-    assert get_currency('2929.HK') == 'HKD'
+    assert get_currency('LOTB.BR') == 'EUR'
 
 
 def test_get_currency_unknown_defaults_eur():
@@ -140,7 +140,7 @@ def test_ibkr_symbol_map():
     assert m['ASML'] == 'ASML.AS'
     assert m['BREB'] == 'BREB.BR'
     assert m['BRK B'] == 'BRK-B'
-    assert m['2929'] == '2929.HK'
+    assert m['LOTB'] == 'LOTB.BR'
     assert m['GAW'] == 'GAW.L'
 
 

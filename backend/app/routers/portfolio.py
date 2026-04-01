@@ -178,6 +178,74 @@ def performance(db=Depends(get_db), user=Depends(get_current_user)):
     return {'snapshots': snapshots, 'benchmarks': benchmarks}
 
 
+@router.get('/returns')
+def returns(db=Depends(get_db), user=Depends(get_current_user)):
+    """Rendement per periode: dag, maand, YTD, totaal."""
+    from datetime import datetime, date
+
+    try:
+        snapshots = get_all_snapshots(db)
+    except Exception as e:
+        logger.error("Returns ophalen mislukt: %s", e)
+        return {'day': None, 'month': None, 'ytd': None, 'total': None}
+
+    if not snapshots:
+        return {'day': None, 'month': None, 'ytd': None, 'total': None}
+
+    sorted_snaps = sorted(snapshots, key=lambda s: s.get('snapshot_date', ''))
+    valid = [s for s in sorted_snaps if s.get('total_value_eur') is not None]
+    if not valid:
+        return {'day': None, 'month': None, 'ytd': None, 'total': None}
+
+    current = valid[-1]
+    current_val = float(current['total_value_eur'])
+    current_cash = float(current.get('cash_eur', 0) or 0)
+    current_total = current_val + current_cash
+
+    def _find_ref(target_date_str):
+        """Vind snapshot op of vlak voor target datum."""
+        best = None
+        for s in valid:
+            sd = s.get('snapshot_date', '')
+            if sd <= target_date_str:
+                best = s
+        return best
+
+    def _calc_return(ref_snap):
+        if not ref_snap:
+            return None
+        ref_val = float(ref_snap['total_value_eur'])
+        ref_cash = float(ref_snap.get('cash_eur', 0) or 0)
+        ref_total = ref_val + ref_cash
+        if ref_total == 0:
+            return None
+        return_eur = current_total - ref_total
+        return_pct = (return_eur / ref_total) * 100
+        return {'return_pct': round(return_pct, 2), 'return_eur': round(return_eur, 2), 'ref_date': ref_snap.get('snapshot_date')}
+
+    today = date.today()
+
+    # Dag: vorige snapshot
+    day_ref = valid[-2] if len(valid) >= 2 else None
+    day_result = _calc_return(day_ref)
+
+    # Maand: eerste dag van huidige maand
+    month_start = today.replace(day=1).isoformat()
+    month_ref = _find_ref(month_start)
+    month_result = _calc_return(month_ref)
+
+    # YTD: 1 januari
+    ytd_start = today.replace(month=1, day=1).isoformat()
+    ytd_ref = _find_ref(ytd_start)
+    ytd_result = _calc_return(ytd_ref)
+
+    # Totaal: eerste snapshot
+    total_ref = valid[0]
+    total_result = _calc_return(total_ref)
+
+    return {'day': day_result, 'month': month_result, 'ytd': ytd_result, 'total': total_result}
+
+
 @router.get('/holdings')
 def holdings(db=Depends(get_db), user=Depends(get_current_user)):
     try:

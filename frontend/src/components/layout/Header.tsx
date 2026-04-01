@@ -15,6 +15,7 @@ const NAV_ITEMS = [
   { label: 'Transacties', href: '/transacties' },
   { label: 'Data Sync', href: '/data-sync' },
   { label: 'Principes', href: '/principes' },
+  { label: 'Watchtower', href: '/dashboard/watchtower' },
 ]
 
 export function Header() {

@@ -66,10 +66,23 @@ function normalizeToBase(values: { date: string; value: number }[], baseValue: n
   }))
 }
 
+// --- BENCHMARK CONFIG ---
+
+const BENCHMARK_COLORS: Record<string, string> = {
+  'S&P 500': '#2563eb',
+  'MSCI World': '#7c3aed',
+  'AEX': '#ea580c',
+  'STOXX 600': '#0891b2',
+  'Nasdaq': '#db2777',
+}
+
+const DEFAULT_BENCHMARKS = ['S&P 500', 'MSCI World']
+
 export default function RendementPage() {
   const [data, setData] = useState<PerformanceData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [selectedBenchmarks, setSelectedBenchmarks] = useState<Set<string>>(new Set(DEFAULT_BENCHMARKS))
   const isDark = useIsDark()
 
   const fetchData = useCallback(() => {
@@ -140,8 +153,18 @@ export default function RendementPage() {
 
   // --- CHART DATA ---
 
+  const toggleBenchmark = (key: string) => {
+    setSelectedBenchmarks(prev => {
+      const next = new Set(prev)
+      if (next.has(key)) next.delete(key)
+      else next.add(key)
+      return next
+    })
+  }
+
   const safeBenchmarks = benchmarks ?? {}
-  const benchmarkKeys = Object.keys(safeBenchmarks)
+  const allBenchmarkKeys = Object.keys(safeBenchmarks)
+  const benchmarkKeys = allBenchmarkKeys.filter(k => selectedBenchmarks.has(k))
   const portfolioBase = first.total_value_eur
 
   const dateMap: Record<string, Record<string, number>> = {}
@@ -176,7 +199,6 @@ export default function RendementPage() {
     }, {} as Record<string, number | null>),
   }))
 
-  const benchmarkColors = [SECTOR_COLORS[1], SECTOR_COLORS[2], SECTOR_COLORS[4]]
   const gridColor = isDark ? '#334155' : '#e2e8f0'
   const tickColor = isDark ? '#64748b' : '#94a3b8'
 
@@ -208,6 +230,33 @@ export default function RendementPage() {
 
       {/* Performance chart */}
       <h2 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-3">Waardeontwikkeling</h2>
+
+      {/* Benchmark toggles */}
+      {allBenchmarkKeys.length > 0 && (
+        <div className="flex flex-wrap gap-2 mb-4">
+          <span className="text-xs font-medium text-slate-500 dark:text-slate-400 self-center mr-1">Benchmarks:</span>
+          {allBenchmarkKeys.map(key => {
+            const isActive = selectedBenchmarks.has(key)
+            const color = BENCHMARK_COLORS[key] ?? SECTOR_COLORS[0]
+            return (
+              <button
+                key={key}
+                onClick={() => toggleBenchmark(key)}
+                className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border transition-all duration-150 ${
+                  isActive
+                    ? 'border-transparent text-white shadow-sm'
+                    : 'border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-400 bg-white dark:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-500'
+                }`}
+                style={isActive ? { backgroundColor: color } : undefined}
+              >
+                <span className="inline-block w-2.5 h-0.5 rounded-full" style={{ backgroundColor: color, opacity: isActive ? 1 : 0.5 }} />
+                {key}
+              </button>
+            )
+          })}
+        </div>
+      )}
+
       <div className="bg-white dark:bg-slate-800 rounded-lg border border-slate-200/60 dark:border-slate-700/60 p-5 hover:shadow-sm transition-shadow">
         <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100 mb-4">
           Portefeuillewaarde over tijd
@@ -278,12 +327,12 @@ export default function RendementPage() {
               connectNulls
               name="portfolio"
             />
-            {benchmarkKeys.map((key, i) => (
+            {benchmarkKeys.map((key) => (
               <Line
                 key={key}
                 type="monotone"
                 dataKey={key}
-                stroke={benchmarkColors[i % benchmarkColors.length]}
+                stroke={BENCHMARK_COLORS[key] ?? SECTOR_COLORS[0]}
                 strokeWidth={1.5}
                 strokeDasharray="4 3"
                 dot={false}

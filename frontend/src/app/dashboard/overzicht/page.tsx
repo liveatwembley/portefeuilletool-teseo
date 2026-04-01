@@ -1,5 +1,5 @@
 'use client'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { usePortfolio } from '@/hooks/usePortfolio'
 import { KpiCard } from '@/components/dashboard/KpiCard'
 import { TreasuryCard } from '@/components/dashboard/TreasuryCard'
@@ -8,10 +8,29 @@ import { SectorDonut } from '@/components/charts/SectorDonut'
 import { TreemapChart } from '@/components/charts/TreemapChart'
 import { formatEuro, formatPct, formatNumber } from '@/lib/formatters'
 import { Skeleton } from '@/components/ui/skeleton'
+import { api } from '@/lib/api'
+
+interface PeriodReturn {
+  return_pct: number
+  return_eur: number
+  ref_date: string
+}
+
+interface ReturnsData {
+  day: PeriodReturn | null
+  month: PeriodReturn | null
+  ytd: PeriodReturn | null
+  total: PeriodReturn | null
+}
 
 export default function OverzichtPage() {
   const { data, loading, error, refresh } = usePortfolio()
   const [showCash, setShowCash] = useState(false)
+  const [returns, setReturns] = useState<ReturnsData | null>(null)
+
+  useEffect(() => {
+    api.get<ReturnsData>('/api/portfolio/returns').then(setReturns).catch(() => {})
+  }, [])
 
   if (loading) {
     return (
@@ -160,6 +179,26 @@ export default function OverzichtPage() {
           sublabelClassName={cashSublabelColor}
         />
       </div>
+
+      {/* Rendement per periode */}
+      {returns && (
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          {[
+            { label: 'Dag', data: returns.day },
+            { label: 'Maand', data: returns.month },
+            { label: 'YTD', data: returns.ytd },
+            { label: 'Totaal', data: returns.total },
+          ].map(({ label, data: r }) => (
+            <KpiCard
+              key={label}
+              label={`Rendement ${label}`}
+              value={r ? formatPct(r.return_pct) : '—'}
+              sublabel={r ? formatEuro(r.return_eur) : undefined}
+              pnlValue={r?.return_eur}
+            />
+          ))}
+        </div>
+      )}
 
       {/* Quick insights */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">

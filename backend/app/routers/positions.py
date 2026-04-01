@@ -23,6 +23,11 @@ class AdviceUpdate(BaseModel):
     motivation: Optional[str] = None
 
 
+class MandateUpdate(BaseModel):
+    mandate_buy: Optional[int] = None
+    mandate_sell: Optional[int] = None
+
+
 @router.get('/')
 def list_positions(db=Depends(get_db), user=Depends(get_current_user)):
     return get_all_positions(db)
@@ -107,6 +112,34 @@ def update_advice(ticker: str, body: AdviceUpdate, db=Depends(get_db), user=Depe
         update_data['advice'] = body.advice
     if body.motivation is not None:
         update_data['motivation'] = body.motivation
+
+    if update_data:
+        db.table('eq_holdings').update(update_data).eq('id', target['id']).execute()
+
+    return {'status': 'ok'}
+
+
+@router.put('/{ticker}/mandate')
+def update_mandate(ticker: str, body: MandateUpdate, db=Depends(get_db), user=Depends(get_current_user)):
+    snapshot = get_latest_snapshot(db)
+    if not snapshot:
+        raise HTTPException(status_code=404, detail='Geen snapshot gevonden')
+
+    holdings = get_holdings_for_snapshot(db, snapshot['id'])
+    target = None
+    for h in holdings:
+        if h.get('eq_positions', {}).get('ticker') == ticker:
+            target = h
+            break
+
+    if not target:
+        raise HTTPException(status_code=404, detail=f'Holding voor {ticker} niet gevonden')
+
+    update_data = {}
+    if body.mandate_buy is not None:
+        update_data['mandate_buy'] = body.mandate_buy
+    if body.mandate_sell is not None:
+        update_data['mandate_sell'] = body.mandate_sell
 
     if update_data:
         db.table('eq_holdings').update(update_data).eq('id', target['id']).execute()

@@ -217,7 +217,13 @@ def get_fundamental_data_batch(tickers):
 
 @cache_benchmark
 def get_benchmark_history(period='1y'):
-    benchmarks = {'^GSPC': 'S&P 500', 'URTH': 'MSCI World'}
+    benchmarks = {
+        '^GSPC': 'S&P 500',
+        'URTH': 'MSCI World',
+        '^AEX': 'AEX',
+        '^STOXX': 'STOXX 600',
+        '^IXIC': 'Nasdaq',
+    }
     result = {}
     for ticker, name in benchmarks.items():
         try:

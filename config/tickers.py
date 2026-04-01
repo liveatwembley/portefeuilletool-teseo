@@ -21,7 +21,7 @@ TICKERS = {
     'ADYEN.AS':  {'name': 'Adyen',           'currency': 'EUR', 'sector': 'Technology',             'country': 'NL', 'pence': False, 'aliases': []},
     'FTNT':      {'name': 'Fortinet',        'currency': 'USD', 'sector': 'Technology',             'country': 'US', 'pence': False, 'aliases': []},
     'MELI':      {'name': 'MercadoLibre',    'currency': 'USD', 'sector': 'Technology',             'country': 'AR', 'pence': False, 'aliases': []},
-    '2929.HK':   {'name': 'Lotus',           'currency': 'HKD', 'sector': 'Technology',             'country': 'HK', 'pence': False, 'aliases': []},
+    'LOTB.BR':   {'name': 'Lotus Bakeries',   'currency': 'EUR', 'sector': 'Consumer Staples',       'country': 'BE', 'pence': False, 'aliases': ['Lotus']},
 
     # ─── CONSUMER DISCRETIONARY ──────────────────────────────
     'AMZN':      {'name': 'Amazon',          'currency': 'USD', 'sector': 'Consumer Discretionary', 'country': 'US', 'pence': False, 'aliases': []},
@@ -129,8 +129,8 @@ def get_ibkr_symbol_map():
         ibkr_symbol = ticker.split('.')[0]
         if ticker == 'BRK-B':
             ibkr_symbol = 'BRK B'
-        elif ticker == '2929.HK':
-            ibkr_symbol = '2929'
+        elif ticker == 'LOTB.BR':
+            ibkr_symbol = 'LOTB'
         mapping[ibkr_symbol] = ticker
     return mapping
 

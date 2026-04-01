@@ -73,6 +73,12 @@ class ApiClient {
       body: body ? JSON.stringify(body) : undefined,
     })
   }
+
+  delete<T>(path: string) {
+    return this.fetch<T>(path, {
+      method: 'DELETE',
+    })
+  }
 }
 
 export const api = new ApiClient()
