@@ -2,33 +2,55 @@
 
 ## Project Overview
 
-Professionele portefeuillemanagementtool voor het **AICB Equity Fund** (Teseo BV). Gebouwd met Streamlit, met een Morningstar-geïnspireerde UI, live marktdata en multi-broker integratie.
+Professionele portefeuillemanagementtool voor het **AICB Equity Fund** (Teseo BV). Long-term doel: SaaS product voor beleggersclubs.
+
+**Architectuur:** Migratie van Streamlit naar FastAPI (backend) + Next.js 14 (frontend). Streamlit draait nog op Railway totdat Next.js feature-complete is.
 
 ## Quick Start
 
 ```bash
-# Install dependencies (gebruik conda env blackbird311 of vergelijkbaar)
+# === Streamlit (legacy, draait nog op Railway) ===
 conda activate blackbird311
 pip install -r requirements.txt
-
-# Set environment variables (see .env)
-# SUPABASE_URL, SUPABASE_KEY, IBKR_TOKEN, IBKR_QUERY_ID, GOOGLE_CREDENTIALS
-# APP_USERNAME, APP_PASSWORD_HASH (sha256)
-
-# Run the app
 streamlit run app.py
+
+# === Nieuwe architectuur (in ontwikkeling) ===
+# Backend (FastAPI)
+cd backend && pip install -r requirements.txt
+uvicorn app.main:app --reload --port 8000
+
+# Frontend (Next.js)
+cd frontend && npm install && npm run dev
+
+# Of via Docker Compose:
+docker-compose up
 ```
 
 ## Tech Stack
 
+### Nieuwe architectuur (in ontwikkeling)
+| Laag | Keuze |
+|------|-------|
+| Backend | FastAPI + Python 3.11 (`backend/`) |
+| Frontend | Next.js 14 + TypeScript + Tailwind CSS (`frontend/`) |
+| UI Components | shadcn/ui (vereenvoudigd) |
+| Charts | Recharts (Treemap, PieChart, BarChart, AreaChart) |
+| Auth | JWT (python-jose) |
+| Caching | cachetools TTLCache (prijzen 5min, FX 15min, fundamentals 1u) |
+| Hosting | Railway (2 services: backend + frontend) |
+
+### Legacy (Streamlit, nog actief)
 - **Frontend**: Streamlit + Plotly (charts) + extern CSS (`assets/style.css`)
-- **Backend**: Supabase (PostgreSQL)
+
+### Gedeeld
+- **Database**: Supabase (PostgreSQL)
 - **Market Data**: Yahoo Finance (yfinance), ECB API (FX rates), Google Finance (fallback)
 - **Brokers**: Interactive Brokers (Flex Query API + XML import)
-- **Historical Data**: Google Sheets API (2019-2025, ook voor nieuwe nota's)
+- **Historical Data**: Google Sheets API (2019-2025, folder ID: `1ixfRjf2u-9o00f6iymIVYjIewoj6jluc`)
 
 ## Project Structure
 
+### Root (Streamlit legacy)
 ```
 app.py                  -> Entry point, auth, navigatie, CSS loading
 calculations.py         -> Centrale portfolio berekeningen (enrich, P&L, gewichten)
@@ -39,23 +61,41 @@ live_refresh.py         -> Dagelijkse herberekening met live koersen
 ibkr_flex.py            -> IBKR Flex Query API client (2026+)
 ibkr_xml_import.py      -> IBKR XML Activity Statement parser
 import_sheets.py        -> Google Sheets import (CLI bulk + app single-tab)
-config/
-  __init__.py
-  tickers.py            -> SINGLE SOURCE OF TRUTH voor alle ticker data
-assets/
-  style.css             -> Alle CSS (extern, niet inline)
-  logo_b64.txt          -> Teseo logo als base64
-pages/
-  dashboard.py          -> Coordinator: laadt data, dispatcht naar sub-modules
-  dashboard_overview.py -> Overzicht sub-tab (KPIs, treemap, posities tabel)
-  dashboard_xray.py     -> X-Ray sub-tab (sector, geo, risico)
-  dashboard_performance.py -> Rendement sub-tab (historiek, benchmark)
-  dashboard_holdings.py -> Holdings sub-tab (fundamentele data tabel)
-  posities.py           -> Individueel aandeeldetail (chart, KPIs, fundamentals)
-  transacties.py        -> Buy/sell transacties invoer & historie
-  ibkr_sync.py          -> Data Sync UI (Google Sheets, Live Refresh, IBKR, XML)
+config/tickers.py       -> SINGLE SOURCE OF TRUTH voor alle ticker data
+assets/style.css        -> Alle CSS
+pages/                  -> Streamlit pagina's (dashboard, posities, transacties, ibkr_sync)
 .streamlit/
   config.toml           -> Theme & layout config
+```
+
+### Backend (FastAPI - nieuw)
+```
+backend/
+  app/
+    main.py             -> FastAPI app, CORS, lifespan
+    auth.py             -> JWT auth (python-jose)
+    cache.py            -> cachetools TTLCache wrappers
+    dependencies.py     -> Supabase client DI
+    routers/            -> portfolio, positions, transactions, market, sync, auth
+  core/                 -> Kopie van root Python modules (aangepast voor FastAPI)
+  Dockerfile
+  requirements.txt
+```
+
+### Frontend (Next.js 14 - nieuw)
+```
+frontend/
+  src/
+    app/                -> App Router pages (login, dashboard/*, posities, transacties, data-sync)
+    components/
+      ui/               -> Basis UI componenten
+      charts/           -> Recharts (TreemapChart, SectorDonut)
+      layout/           -> Header, navigatie
+      dashboard/        -> KpiCard, PositionsTable
+    lib/                -> api.ts, types.ts, formatters.ts, colors.ts
+    hooks/              -> usePortfolio.ts
+  tailwind.config.ts
+  Dockerfile
 ```
 
 ## Key Architecture Decisions
