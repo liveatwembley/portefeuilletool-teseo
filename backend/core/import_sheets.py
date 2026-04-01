@@ -95,26 +95,32 @@ def list_spreadsheets():
     """
     gc = _get_gspread_client()
     sheets = []
-    for s in gc.list_spreadsheet_files():
-        if s.get('parents') and SHEETS_FOLDER_ID in s['parents']:
-            sheets.append({'id': s['id'], 'name': s['name']})
+
+    # Primair: Drive API (betrouwbaarst, werkt met folder ID)
+    try:
+        from googleapiclient.discovery import build
+        creds = gc.auth
+        drive = build('drive', 'v3', credentials=creds, cache_discovery=False)
+        query = (
+            f"'{SHEETS_FOLDER_ID}' in parents"
+            f" and mimeType='application/vnd.google-apps.spreadsheet'"
+            f" and trashed=false"
+        )
+        result = drive.files().list(q=query, fields='files(id, name)', orderBy='name desc').execute()
+        sheets = [{'id': f['id'], 'name': f['name']} for f in result.get('files', [])]
+    except Exception as e:
+        logger.warning("Drive API ophalen mislukt: %s", e)
+
+    # Fallback: gspread list_spreadsheet_files
     if not sheets:
-        # Fallback: gspread list_spreadsheet_files geeft niet altijd parents mee.
-        # Gebruik Drive API rechtstreeks.
         try:
-            from googleapiclient.discovery import build
-            creds = gc.auth  # gspread v6+
-            drive = build('drive', 'v3', credentials=creds, cache_discovery=False)
-            query = (
-                f"'{SHEETS_FOLDER_ID}' in parents"
-                f" and mimeType='application/vnd.google-apps.spreadsheet'"
-                f" and trashed=false"
-            )
-            result = drive.files().list(q=query, fields='files(id, name)').execute()
-            sheets = [{'id': f['id'], 'name': f['name']} for f in result.get('files', [])]
+            for s in gc.list_spreadsheet_files():
+                if s.get('parents') and SHEETS_FOLDER_ID in s['parents']:
+                    sheets.append({'id': s['id'], 'name': s['name']})
         except Exception as e:
-            logger.warning("Drive API fallback mislukt: %s", e)
-    sheets.sort(key=lambda x: x['name'])
+            logger.warning("gspread list_spreadsheet_files mislukt: %s", e)
+
+    sheets.sort(key=lambda x: x['name'], reverse=True)
     return sheets
 
 
@@ -357,7 +363,7 @@ def _import_single_tab(supabase, ws, snapshot_date, position_ids):
 
 # ─── APP-CALLABLE FUNCTIONS ─────────────────────────────────
 
-def list_available_tabs(sheet_id=None, min_year=2026):
+def list_available_tabs(sheet_id=None, min_year=None):
     """
     Scan spreadsheet(s) en retourneer lijst van beschikbare datum-tabs.
 

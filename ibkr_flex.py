@@ -331,7 +331,7 @@ def sync_ibkr_to_supabase(supabase, token=None, query_id=None):
         eur_usd=fx_rates.get('EUR/USD'),
         eur_gbp=fx_rates.get('EUR/GBP'),
         eur_dkk=fx_rates.get('EUR/DKK'),
-        eur_hkd=fx_rates.get('EUR/HKD'),
+        eur_hkd=None,
     )
 
     # Verwijder oude holdings voor deze snapshot (bij re-sync)

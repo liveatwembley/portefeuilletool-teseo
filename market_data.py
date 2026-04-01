@@ -90,7 +90,7 @@ def _fetch_ecb_rates():
     rates = {}
     try:
         resp = requests.get(
-            'https://data-api.ecb.europa.eu/service/data/EXR/D.USD+GBP+DKK+HKD.EUR.SP00.A',
+            'https://data-api.ecb.europa.eu/service/data/EXR/D.USD+GBP+DKK.EUR.SP00.A',
             headers={'Accept': 'application/json'},
             params={'lastNObservations': '1'},
             timeout=10,
@@ -135,7 +135,7 @@ def _fetch_google_finance_rate(from_curr, to_curr):
 def get_live_fx_rates():
     """Haal actuele wisselkoersen op. Volgorde: ECB → Google Finance → yfinance fallback. Cache 15 min."""
     rates = {'EUR/EUR': 1.0}
-    needed_pairs = ['EUR/USD', 'EUR/GBP', 'EUR/DKK', 'EUR/HKD']
+    needed_pairs = ['EUR/USD', 'EUR/GBP', 'EUR/DKK']
 
     # 1) ECB API (meest betrouwbaar)
     ecb_rates = _fetch_ecb_rates()
@@ -152,7 +152,7 @@ def get_live_fx_rates():
     # 3) yfinance als laatste fallback
     missing = [p for p in needed_pairs if p not in rates]
     if missing:
-        yf_map = {'EUR/USD': 'EURUSD=X', 'EUR/GBP': 'EURGBP=X', 'EUR/DKK': 'EURDKK=X', 'EUR/HKD': 'EURHKD=X'}
+        yf_map = {'EUR/USD': 'EURUSD=X', 'EUR/GBP': 'EURGBP=X', 'EUR/DKK': 'EURDKK=X'}
         try:
             yf_tickers = [yf_map[p] for p in missing if p in yf_map]
             if yf_tickers:
@@ -173,7 +173,6 @@ def get_live_fx_rates():
     rates.setdefault('EUR/USD', 1.18)
     rates.setdefault('EUR/GBP', 0.84)
     rates.setdefault('EUR/DKK', 7.46)
-    rates.setdefault('EUR/HKD', 9.20)
     return rates
 
 

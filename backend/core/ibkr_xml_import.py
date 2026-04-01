@@ -98,7 +98,7 @@ def import_xml_to_supabase(supabase, xml_content, snapshot_date=None):
         eur_usd=fx_rates.get('EUR/USD'),
         eur_gbp=fx_rates.get('EUR/GBP'),
         eur_dkk=fx_rates.get('EUR/DKK'),
-        eur_hkd=fx_rates.get('EUR/HKD'),
+        eur_hkd=None,
     )
 
     # Verwijder oude holdings (bij re-import)

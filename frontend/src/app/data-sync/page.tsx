@@ -142,18 +142,26 @@ function SheetsImportCard() {
           {sheetsError}
         </div>
       ) : (
-        <div className="mb-4">
-          <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">Selecteer spreadsheet</label>
+        <div className="mb-4 relative z-20">
+          <label className="block text-xs font-medium text-slate-500 dark:text-slate-400 mb-1.5">
+            Selecteer spreadsheet ({spreadsheets.length} gevonden)
+          </label>
           <select
             value={selectedSheet}
             onChange={(e) => setSelectedSheet(e.target.value)}
-            className="w-full rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2.5 text-sm text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#1B3A5C]/20 dark:focus:ring-[#1B3A5C]/40 focus:border-[#1B3A5C]"
+            className="w-full rounded-lg border border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-700 px-3 py-2.5 text-sm text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-[#1B3A5C]/20 dark:focus:ring-[#1B3A5C]/40 focus:border-[#1B3A5C] appearance-none cursor-pointer"
+            style={{ WebkitAppearance: 'menulist' }}
           >
             <option value="">-- Kies een spreadsheet --</option>
             {spreadsheets.map((s) => (
               <option key={s.id} value={s.id}>{s.name}</option>
             ))}
           </select>
+          {spreadsheets.length === 0 && !sheetsLoading && (
+            <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">
+              Geen spreadsheets gevonden. Controleer de Google Sheets credentials.
+            </p>
+          )}
         </div>
       )}
 
